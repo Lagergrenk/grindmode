@@ -1,5 +1,11 @@
 import React from 'react';
-import { Navigate, Route, Routes as Switch } from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes as Switch,
+  useLocation,
+  Link,
+} from 'react-router-dom';
 import { AuthLayout, DashboardLayout } from '@layouts';
 import { ProtectedRoute } from '@/components/navigation/ProtectedRoute';
 import { Signup, Login } from '@pages/auth';
@@ -8,9 +14,22 @@ import { useAuth } from '@hooks/useAuth';
 import { Dashboard } from './pages/dashboard/Dashboard';
 import { Nutrition } from './pages/dashboard/Nutrition';
 
+/**
+ * Main router component that handles application routing
+ * Manages authentication state and protected routes
+ */
 export const Routes: React.FC = () => {
-  // Your authentication logic
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  // Show loading state while auth is being checked
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <Switch>
@@ -40,20 +59,31 @@ export const Routes: React.FC = () => {
       <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
-          {/* Use index for the default route */}
           <Route path="settings" element={<Settings />} />
-          {/* Use relative paths */}
           <Route path="nutrition" element={<Nutrition />} />
-          {/* Update to your component */}
           <Route path="workouts" element={<></>} />
-          {/* Update to your component */}
           <Route path="progress" element={<></>} />
-          {/* Update to your component */}
         </Route>
       </Route>
 
       {/* 404 Not Found Route */}
-      <Route path="*" element={<div>not found</div>} />
+      <Route
+        path="*"
+        element={
+          <div className="flex flex-col items-center justify-center h-screen">
+            <h1 className="text-2xl font-bold mb-4">Page Not Found</h1>
+            <p className="mb-4">
+              The page at {location.pathname} does not exist.
+            </p>
+            <Link
+              to="/"
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              Return Home
+            </Link>
+          </div>
+        }
+      />
     </Switch>
   );
 };

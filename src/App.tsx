@@ -1,5 +1,4 @@
 import React from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { AuthProvider } from './providers/auth.provider';
 import { Routes } from './routes';
 import { AppProvider } from './providers/app.provider';
@@ -11,9 +10,7 @@ const App: React.FC = () => {
     <AuthProvider>
       <ThemeProvider>
         <AppProvider>
-          <Router>
-            <Routes />
-          </Router>
+          <Routes />
         </AppProvider>
       </ThemeProvider>
     </AuthProvider>
