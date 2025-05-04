@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { defineConfig } from 'vite';
+import { defineConfig, UserConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
-  const config = {
+  const config:UserConfig = {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -27,6 +27,5 @@ export default defineConfig(({ command }) => {
   if (command !== 'serve') {
     config.base = '/grindmode';
   }
-
   return config;
 });
