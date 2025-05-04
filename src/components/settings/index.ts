@@ -1,2 +1,2 @@
-export * from './AccountActions';
-export * from './UserProfile';
+export * from './AccountSettingsTab';
+export * from './ProfileSection';
