@@ -4,13 +4,13 @@ import { getFirestore } from 'firebase/firestore';
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyC-DVPD-4CjDQ0nYOjg5y2hMOy1zjx6VeU',
-  authDomain: 'grindmode-5d2bb.firebaseapp.com',
-  projectId: 'grindmode-5d2bb',
-  storageBucket: 'grindmode-5d2bb.firebasestorage.app',
-  messagingSenderId: '1096214127157',
-  appId: '1:1096214127157:web:7b82fd19693d933f3f877c',
-  measurementId: 'G-XJN3G8434B',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
