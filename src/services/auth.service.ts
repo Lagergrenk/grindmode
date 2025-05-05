@@ -127,6 +127,7 @@ export const mapUserToAuthUser = (user: User): IAuthUser => {
     email: user.email,
     displayName: user.displayName,
     photoURL: user.photoURL,
+    createdAt: user.metadata.creationTime,
   };
 };
 

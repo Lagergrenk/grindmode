@@ -3,7 +3,7 @@ export interface IAuthUser {
   email: string | null;
   displayName: string | null;
   photoURL?: string | null;
-  createdAt: string | null;
+  createdAt?: string;
 }
 
 export type AuthState =
