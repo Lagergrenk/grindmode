@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import {
   Avatar,
-  AvatarFallback,
+  AvatarImage,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -82,11 +82,10 @@ export const Navbar: React.FC<INavbarProps> = ({
               <DropdownMenuTrigger>
                 <div className="flex items-center gap-2 rounded-full pl-1 cursor-pointer">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {user?.displayName?.charAt(0) ||
-                        user?.email?.charAt(0) ||
-                        'U'}
-                    </AvatarFallback>
+                    <AvatarImage
+                      src={user?.photoURL || undefined}
+                      alt="User Avatar"
+                    />
                   </Avatar>
                   <span className="hidden md:inline text-sm font-medium">
                     {user?.displayName || 'Account'}

@@ -24,12 +24,6 @@ export const Settings: React.FC = () => {
   };
 
   /**
-   * Handles display name change request
-   */
-  const handleChangeDisplayName = () => {
-    console.log('Change display name clicked');
-  };
-  /**
    * Handles password change request
    */
   // const handleChangePassword = () => {
