@@ -3,9 +3,10 @@ import { IAppContext, defaultAppState } from '@/types';
 
 export const AppContext = React.createContext<IAppContext>({
   state: defaultAppState,
-  setActiveDashboardTab: () => {},
-  setMeasurementSystem: () => {},
+  setHeightUnit: () => {},
+  setWeightUnit: () => {},
+  setDateFormat: () => {},
   setSidebarOpen: () => {},
   setTheme: () => {},
-  toggleNotifications: () => {},
+  setWorkoutDaysPerWeek: () => {},
 });

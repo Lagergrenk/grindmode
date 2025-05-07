@@ -4,6 +4,17 @@ import { IImportMeta } from '../../vite-env';
 const VITE_USDA_API_KEY: IImportMeta = import.meta.env.VITE_USDA_API_KEY;
 const USDA_API_BASE_URL: IImportMeta = import.meta.env.VITE_USDA_API_BASE_URL;
 
+// Nutrient IDs from USDA API
+const NUTRIENT_IDS = {
+  calories: 1008, // Energy (kcal)
+  protein: 1003, // Protein
+  carbs: 1005, // Carbohydrates
+  fat: 1004, // Total lipids (fat)
+  fiber: 1079, // Fiber
+  sugar: 2000, // Sugars
+  sodium: 1093, // Sodium
+};
+
 export const usdaApi = {
   /**
    * Search for foods by name/description
@@ -63,17 +74,6 @@ export const usdaApi = {
       fiber: 0,
       sugar: 0,
       sodium: 0,
-    };
-
-    // Nutrient IDs from USDA API
-    const NUTRIENT_IDS = {
-      calories: 1008, // Energy (kcal)
-      protein: 1003, // Protein
-      carbs: 1005, // Carbohydrates
-      fat: 1004, // Total lipids (fat)
-      fiber: 1079, // Fiber
-      sugar: 2000, // Sugars
-      sodium: 1093, // Sodium
     };
 
     food.foodNutrients.forEach((nutrient) => {

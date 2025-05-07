@@ -14,19 +14,22 @@ export const useAppState = () => {
 
   const {
     state,
-    setActiveDashboardTab,
-    setMeasurementSystem,
+    setHeightUnit,
+    setWeightUnit,
+    setDateFormat,
     setSidebarOpen,
     setTheme,
-    toggleNotifications,
+
+    setWorkoutDaysPerWeek,
   } = context;
 
   return {
     state,
-    setActiveDashboardTab,
-    setMeasurementSystem,
+    setHeightUnit,
+    setWeightUnit,
+    setDateFormat,
     setSidebarOpen,
     setTheme,
-    toggleNotifications,
+    setWorkoutDaysPerWeek,
   };
 };

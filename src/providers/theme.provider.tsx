@@ -60,8 +60,12 @@ export function ThemeProvider({
         // Ensure we have the proper structure
         if (!appState.userPreferences) {
           appState.userPreferences = {
+            heightUnit: 'cm',
+            weightUnit: 'kg',
+            dateFormat: 'DD/MM/YYYY',
+            workoutDaysPerWeek: 3,
             theme: newTheme,
-            measeurementSystem: 'metric',
+
             notificationsEnabled: true,
           };
         }

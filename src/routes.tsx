@@ -1,18 +1,15 @@
 import React from 'react';
-import {
-  Navigate,
-  Route,
-  Routes as Switch,
-  useLocation,
-  Link,
-} from 'react-router-dom';
-import { AuthLayout, DashboardLayout } from '@layouts';
-import { ProtectedRoute } from '@/components/navigation/ProtectedRoute';
-import { Signup, Login } from '@pages/auth';
-import { Settings } from '@pages/dashboard';
-import { useAuth } from '@hooks/useAuth';
-import { Dashboard } from './pages/dashboard/Dashboard';
-import { Nutrition } from './pages/dashboard/Nutrition';
+import { Route, Routes as Switch, useLocation, Link } from 'react-router-dom';
+
+import { useAuth } from '@/features/auth/hooks/useAuth';
+
+import { authRoutes } from './features/auth/routes';
+import { ProtectedRoute } from './components/navigation';
+import { Dashboard } from './features/dashboard/pages/Dashboard';
+import { DashboardLayout } from '@/shared/layouts/DashboardLayout';
+import { Nutrition } from './features/nutrition/pages/Nutrition';
+import { WorkoutPlanner } from './features/workoutplanner';
+import { Profile } from './features/profile';
 
 /**
  * Main router component that handles application routing
@@ -34,35 +31,16 @@ export const Routes: React.FC = () => {
   return (
     <Switch>
       {/* Auth Routes */}
-      <Route element={<AuthLayout />}>
-        <Route
-          path="/"
-          element={
-            isAuthenticated ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-        <Route
-          path="/login"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
-        />
-        <Route
-          path="/signup"
-          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />}
-        />
-      </Route>
+      {authRoutes(isAuthenticated)}
 
-      {/* Protected Routes*/}
+      {/*  Protected Routes with Dashboard Layout*/}
       <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="nutrition" element={<Nutrition />} />
-          <Route path="workouts" element={<></>} />
-          <Route path="progress" element={<></>} />
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/workoutplanner" element={<WorkoutPlanner />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/progress" element={<div>Progress Tracking</div>} />
         </Route>
       </Route>
 

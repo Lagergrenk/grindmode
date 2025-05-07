@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppContext } from '@/context/app.context';
 import { IAppState, defaultAppState } from '@/types/app.types';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -48,22 +48,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   };
 
-  const setMeasurementSystem = (system: 'metric' | 'imperial') => {
+  const setHeightUnit = (heightUnit: 'cm' | 'ft') => {
     setState((prev) => ({
       ...prev,
       userPreferences: {
         ...prev.userPreferences,
-        measeurementSystem: system,
+        heightUnit,
       },
     }));
   };
 
-  const toggleNotifications = () => {
+  const setWeightUnit = (weightUnit: 'kg' | 'lb') => {
     setState((prev) => ({
       ...prev,
       userPreferences: {
         ...prev.userPreferences,
-        notificationsEnabled: !prev.userPreferences.notificationsEnabled,
+        weightUnit,
+      },
+    }));
+  };
+
+  const setDateFormat = (
+    format: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD',
+  ) => {
+    setState((prev) => ({
+      ...prev,
+      userPreferences: {
+        ...prev.userPreferences,
+        dateFormat: format,
       },
     }));
   };
@@ -74,16 +86,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       ui: {
         ...prev.ui,
         sidebarOpen: isOpen,
-      },
-    }));
-  };
-
-  const setActiveDashboardTab = (tab: string) => {
-    setState((prev) => ({
-      ...prev,
-      ui: {
-        ...prev.ui,
-        activeDashboardTab: tab,
       },
     }));
   };
@@ -108,15 +110,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   };
 
+  const setWorkoutDaysPerWeek = (days: number) => {
+    setState((prev) => ({
+      ...prev,
+      userPreferences: {
+        ...prev.userPreferences,
+        workoutDaysPerWeek: days,
+      },
+    }));
+  };
+
   const value = {
     state,
     setTheme,
-    toggleNotifications,
     setSidebarOpen,
-    setActiveDashboardTab,
-    setMeasurementSystem,
+    setHeightUnit,
+    setWeightUnit,
+    setDateFormat,
     markDashboardNeedsRefresh,
     resetDashboardRefreshState,
+    setWorkoutDaysPerWeek,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

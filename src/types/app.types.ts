@@ -1,7 +1,10 @@
 export interface IUserPreference {
   theme: 'light' | 'dark' | 'system';
-  measeurementSystem: 'metric' | 'imperial';
+  heightUnit: 'cm' | 'ft';
+  weightUnit: 'kg' | 'lb';
+  dateFormat: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD';
   notificationsEnabled: boolean;
+  workoutDaysPerWeek: number;
 }
 
 export interface IUIState {
@@ -20,18 +23,22 @@ export interface IAppState {
 
 export interface IAppContext {
   state: IAppState;
-  setActiveDashboardTab: (tab: string) => void;
-  setMeasurementSystem: (system: 'metric' | 'imperial') => void;
+  setHeightUnit: (unit: 'cm' | 'ft') => void;
+  setWeightUnit: (unit: 'kg' | 'lb') => void;
+  setDateFormat: (format: 'DD/MM/YYYY' | 'MM/DD/YYYY' | 'YYYY-MM-DD') => void;
   setSidebarOpen: (isOpen: boolean) => void;
   setTheme: (theme: 'light' | 'dark') => void;
-  toggleNotifications: () => void;
+  setWorkoutDaysPerWeek: (days: number) => void;
 }
 
 export const defaultAppState: IAppState = {
   userPreferences: {
     theme: 'light',
-    measeurementSystem: 'metric',
+    heightUnit: 'cm',
+    weightUnit: 'kg',
+    dateFormat: 'DD/MM/YYYY',
     notificationsEnabled: true,
+    workoutDaysPerWeek: 3,
   },
   ui: {
     sidebarOpen: false,

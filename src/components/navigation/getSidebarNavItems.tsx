@@ -3,8 +3,8 @@ import {
   BarChart,
   UtensilsCrossed,
   Target,
-  Sliders,
   LayoutDashboard,
+  DumbbellIcon,
 } from 'lucide-react';
 
 export interface INavItem {
@@ -21,22 +21,22 @@ export const getSidebarNavItems = (): INavItem[] => {
       icon: <LayoutDashboard className="h-4 w-4" />,
     },
     {
-      path: '/dashboard/workouts',
-      label: 'Workouts',
-      icon: <Sliders className="h-4 w-4" />,
+      path: '/workoutplanner',
+      label: 'Workout Planner',
+      icon: <DumbbellIcon className="h-4 w-4" />,
     },
     {
-      path: '/dashboard/nutrition',
+      path: '/nutrition',
       label: 'Nutrition',
       icon: <UtensilsCrossed className="h-4 w-4" />,
     },
     {
-      path: '/dashboard/progress',
+      path: '/progress',
       label: 'Progress',
       icon: <BarChart className="h-4 w-4" />,
     },
     {
-      path: '/dashboard/goals',
+      path: '/goals',
       label: 'Goals',
       icon: <Target className="h-4 w-4" />,
     },
