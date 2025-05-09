@@ -4,8 +4,6 @@ export * from './components/exercise/SelectionDialog';
 export * from './components/exercise/ExerciseItem';
 export * from './components/exercise/DetailsDialogs';
 export * from './components/workoutview/WorkoutColumn';
-export * from './components/workoutview/WorkoutWeekView';
-export * from './components/workoutview/WeekNavHeader';
 
 // Export hooks
 export * from './hooks/useExerciseData';

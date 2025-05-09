@@ -15,3 +15,4 @@ export * from './skeleton';
 export * from './stats';
 export * from './SummaryCard';
 export * from './tooltip';
+export * from './editable-text';

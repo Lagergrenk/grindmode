@@ -10,8 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Trash2 } from 'lucide-react';
-
-// Removed unused import: import { set } from 'date-fns';
+import { EditableText } from '@/components/ui';
 
 /**
  * Props for the ExerciseItem component
@@ -20,6 +19,8 @@ interface IExerciseItemProps {
   exercise: IPlannedExercise;
   onAddSet?: (exerciseId: string) => void;
   onDeleteSet?: (exerciseId: string) => void;
+  OnSaveReps?: (reps: number | string) => void;
+  OnSaveWeight?: (weight: number | string) => void;
   className?: string;
   id?: string;
 }
@@ -32,10 +33,12 @@ export const ExerciseItem: React.FC<IExerciseItemProps> = ({
   exercise,
   onAddSet,
   onDeleteSet,
+  OnSaveReps,
+  OnSaveWeight,
   className,
   id,
 }) => {
-  const { sets = 0, weight = 0, reps = '0', exerciseId } = exercise;
+  const { sets = 0, weight = 0, reps = 0, exerciseId } = exercise;
 
   return (
     <div
@@ -55,8 +58,20 @@ export const ExerciseItem: React.FC<IExerciseItemProps> = ({
           {Array.from({ length: sets }, (_, index) => (
             <TableRow key={index}>
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{String(reps)}</TableCell>
-              <TableCell>{weight}</TableCell>
+              <TableCell>
+                <EditableText
+                  className="w-16"
+                  initialValue={reps}
+                  onSave={(newVale) => OnSaveReps && OnSaveReps(newVale)}
+                />
+              </TableCell>
+              <TableCell>
+                <EditableText
+                  className="w-16"
+                  initialValue={weight}
+                  onSave={(newVale) => OnSaveWeight && OnSaveWeight(newVale)}
+                />
+              </TableCell>
               <TableCell className="text-right">
                 {sets > 1 && (
                   <Button

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { exerciseApi } from '@/services/exercise.api.service';
-import { IExerciseSearchResultItem, IPlannedExercise } from '../types';
+import { exerciseApi } from '@/features/workoutplanner';
+import { IExerciseSearchResultItem } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
 
 /**
@@ -15,10 +15,6 @@ export interface IUseExerciseData {
   selectExercise: (
     exerciseId: string,
   ) => Promise<IExerciseSearchResultItem | null>;
-
-  mapApiExerciseToPlannedExercise: (
-    apiExercise: IExerciseSearchResultItem,
-  ) => IPlannedExercise;
 }
 
 /**
@@ -33,19 +29,6 @@ export const useExerciseData = (): IUseExerciseData => {
     IExerciseSearchResultItem[]
   >([]);
   const [error, setError] = useState<string | null>(null);
-
-  const mapApiExerciseToPlannedExercise = useCallback(
-    (apiExercise: IExerciseSearchResultItem): IPlannedExercise => {
-      return {
-        exerciseId: apiExercise.exerciseId,
-        name: apiExercise.name,
-        sets: 0,
-        reps: 0,
-        weight: 0,
-      };
-    },
-    [],
-  );
 
   /**
    * Performs search when debounced search term changes
@@ -89,6 +72,7 @@ export const useExerciseData = (): IUseExerciseData => {
    */
   const selectExercise = useCallback(
     async (exerciseId: string): Promise<IExerciseSearchResultItem | null> => {
+      setIsSearching(true);
       try {
         const fullExercise = await exerciseApi.getExerciseById(exerciseId);
         if (fullExercise.success) {
@@ -101,6 +85,8 @@ export const useExerciseData = (): IUseExerciseData => {
         console.error('Error fetching exercise details:', error);
         setError('Failed to fetch exercise details. Please try again.');
         return null;
+      } finally {
+        setIsSearching(false);
       }
     },
     [],
@@ -113,6 +99,5 @@ export const useExerciseData = (): IUseExerciseData => {
     error,
     setSearchTerm,
     selectExercise,
-    mapApiExerciseToPlannedExercise,
   };
 };

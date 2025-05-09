@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAppState } from '@/hooks/useAppState';
 import {
+  addPlannedWorkout,
   IExerciseSearchResultItem,
   IPlannedExercise,
   IPlannedWorkouts,
@@ -11,55 +12,69 @@ import { toast } from 'sonner';
 import { Timestamp } from 'firebase/firestore';
 
 /**
- * Custom hook for managing workout planner state and operations
- * Handles loading, manipulating, and storing workout data
+ * Creates a new IPlannedWorkouts object with default values.
+ * @param name - The initial name for the workout plan.
+ * @param initialWorkouts - An array of IWorkout to include in the plan.
+ * @param userId - Optional ID of the user creating the plan.
+ * @returns A new IPlannedWorkouts object.
+ */
+const createNewPlannedWorkouts = (
+  name: string,
+  initialWorkouts: IWorkout[],
+): IPlannedWorkouts => {
+  const now = Timestamp.now();
+  return {
+    id: `temp-plan-${now.toMillis()}`, // Temporary ID, finalized on save
+    name,
+    workouts: initialWorkouts,
+    createdAt: now,
+    updatedAt: now,
+  };
+};
+
+/**
+ * Custom hook for managing workout planner state and operations.
+ * Initializes and manages a single IPlannedWorkouts object.
  */
 export const useWorkoutPlanner = () => {
   const { user } = useAuth();
-  const { state } = useAppState();
+  const { state: appState } = useAppState();
   const [numberOfWorkoutsPerWeek] = useState<number>(
-    state.userPreferences.workoutDaysPerWeek,
+    appState.userPreferences.workoutDaysPerWeek,
   );
-  const [workouts, setWorkouts] = useState<IWorkout[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const [plannedWorkouts, setPlannedWorkouts] = useState<IPlannedWorkouts>();
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [plannedWorkouts, setPlannedWorkouts] = useState<
+    IPlannedWorkouts | undefined
+  >(undefined);
 
   useEffect(() => {
-    const initializeWorkoutTemplates = () => {
-      setIsLoading(true);
-      if (user) {
-        const defaultTemplates: IWorkout[] = Array.from(
-          { length: numberOfWorkoutsPerWeek },
-          (_, i) => ({
-            id: `workout-template-${Date.now()}-${i}`,
-            name: `Workout ${i + 1}`,
-            exercises: [],
-          }),
-        );
-        setWorkouts(defaultTemplates);
-      } else {
-        setWorkouts([]);
-      }
-      setIsLoading(false);
-    };
-
-    initializeWorkoutTemplates();
+    setIsLoading(true);
+    if (user) {
+      const defaultWorkoutTemplates: IWorkout[] = Array.from(
+        { length: numberOfWorkoutsPerWeek },
+        (_, i) => ({
+          id: `workout-template-${Date.now()}-${i}`,
+          name: `Workout ${i + 1}`,
+          exercises: [],
+        }),
+      );
+      setPlannedWorkouts(
+        createNewPlannedWorkouts('My Workout Plan', defaultWorkoutTemplates),
+      );
+    } else {
+      setPlannedWorkouts(undefined);
+    }
+    setIsLoading(false);
   }, [user, numberOfWorkoutsPerWeek]);
 
-  /**
-   * Adds an exercise definition to a specific workout template.
-   * Ensures that an exercise is not added if it already exists in the template.
-   * @param workoutId - The ID of the workout template.
-   * @param exercise - The exercise definition to add.
-   */
   const addExerciseToWorkout = useCallback(
     (workoutId: string, exercise: IExerciseSearchResultItem) => {
-      setWorkouts((prevWorkouts) =>
-        prevWorkouts.map((workout) => {
-          if (workout.id !== workoutId) {
-            return workout;
-          }
+      setPlannedWorkouts((prevPlan) => {
+        if (!prevPlan) return prevPlan;
+
+        const updatedInternalWorkouts = prevPlan.workouts.map((workout) => {
+          if (workout.id !== workoutId) return workout;
           if (
             workout.exercises.some(
               (ex) => ex.exerciseId === exercise.exerciseId,
@@ -76,7 +91,6 @@ export const useWorkoutPlanner = () => {
             reps: 10,
             weight: 0,
           };
-
           toast('Exercise Added', {
             description: `"${exercise.name}" added to "${workout.name}".`,
           });
@@ -84,146 +98,218 @@ export const useWorkoutPlanner = () => {
             ...workout,
             exercises: [...workout.exercises, plannedExercise],
           };
-        }),
-      );
+        });
+
+        return {
+          ...prevPlan,
+          workouts: updatedInternalWorkouts,
+          updatedAt: Timestamp.now(),
+        };
+      });
     },
     [],
   );
 
-  /**
-   * Removes an exercise from a specific workout template.
-   * @param workoutId - The ID of the workout template.
-   * @param exerciseId - The ID of the exercise to remove.
-   */
   const removeExerciseFromWorkout = useCallback(
     (workoutId: string, exerciseId: string) => {
-      setWorkouts((prevWorkouts) => {
-        const workoutIndex = prevWorkouts.findIndex(
-          (workout) => workout.id === workoutId,
-        );
+      setPlannedWorkouts((prevPlan) => {
+        if (!prevPlan) return prevPlan;
+        let exerciseRemovedName: string | undefined;
+        let workoutName: string | undefined;
 
-        if (workoutIndex === -1) {
-          return prevWorkouts;
-        }
-
-        const updatedWorkouts = [...prevWorkouts];
-        const targetWorkout = updatedWorkouts[workoutIndex];
-        const exerciseToRemove = targetWorkout.exercises.find(
-          (ex) => ex.exerciseId === exerciseId,
-        );
-
-        updatedWorkouts[workoutIndex] = {
-          ...targetWorkout,
-          exercises: targetWorkout.exercises.filter(
-            (ex) => ex.exerciseId !== exerciseId,
-          ),
-        };
-
-        if (exerciseToRemove) {
+        const updatedInternalWorkouts = prevPlan.workouts.map((workout) => {
+          if (workout.id !== workoutId) return workout;
+          const originalExercise = workout.exercises.find(
+            (ex) => ex.exerciseId === exerciseId,
+          );
+          if (originalExercise) {
+            exerciseRemovedName = originalExercise.name;
+            workoutName = workout.name;
+          }
+          return {
+            ...workout,
+            exercises: workout.exercises.filter(
+              (ex) => ex.exerciseId !== exerciseId,
+            ),
+          };
+        });
+        if (exerciseRemovedName && workoutName) {
           toast('Exercise Removed', {
-            description: `"${exerciseToRemove.name}" removed from "${targetWorkout.name}".`,
+            description: `"${exerciseRemovedName}" removed from "${workoutName}".`,
           });
         }
-
-        return updatedWorkouts;
+        return {
+          ...prevPlan,
+          workouts: updatedInternalWorkouts,
+          updatedAt: Timestamp.now(),
+        };
       });
     },
     [],
   );
 
   /**
-   * Adds a new set to an exercise in a workout template.
-   * This typically means incrementing the planned number of sets.
-   * @param workoutId - The ID of the workout template.
-   * @param exerciseId - The ID of the exercise within the workout.
+   * Updates specific details of an exercise within a workout.
+   * @param workoutId - The ID of the workout containing the exercise.
+   * @param exerciseId - The ID of the exercise to update.
+   * @param updatedExerciseData - An object containing the exercise properties to update. Can be a partial update.
    */
-  const addSetToExercise = useCallback(
-    (workoutId: string, exerciseId: string) => {
-      setWorkouts((prevWorkouts) =>
-        prevWorkouts.map((workout) => {
+  const updateExerciseInWorkout = useCallback(
+    (
+      workoutId: string,
+      exerciseId: string,
+      updatedExerciseData: Partial<IPlannedExercise>,
+    ) => {
+      setPlannedWorkouts((prevPlan) => {
+        if (!prevPlan) return prevPlan;
+
+        const updatedInternalWorkouts = prevPlan.workouts.map((workout) => {
           if (workout.id !== workoutId) {
             return workout;
           }
-
           const updatedExercises = workout.exercises.map((exercise) => {
             if (exercise.exerciseId !== exerciseId) {
               return exercise;
             }
-            toast.info(`Set added to ${exercise.name} in ${workout.name}`);
-            return {
-              ...exercise,
-              sets: (exercise.sets || 0) + 1,
-            };
-          });
 
-          return {
-            ...workout,
-            exercises: updatedExercises,
-          };
-        }),
-      );
+            const currentExercise = workout.exercises.find(
+              (ex) => ex.exerciseId === exerciseId,
+            );
+            const finalUpdatedData = { ...exercise, ...updatedExerciseData };
+            if (updatedExerciseData.sets !== undefined && currentExercise) {
+              toast.info(
+                `Sets for ${currentExercise.name} updated to ${updatedExerciseData.sets} in ${workout.name}`,
+              );
+            }
+
+            return finalUpdatedData;
+          });
+          return { ...workout, exercises: updatedExercises };
+        });
+
+        return {
+          ...prevPlan,
+          workouts: updatedInternalWorkouts,
+          updatedAt: Timestamp.now(),
+        };
+      });
     },
     [],
+  );
+
+  const setWorkoutName = useCallback((workoutId: string, newName: string) => {
+    setPlannedWorkouts((prevPlan) => {
+      if (!prevPlan) return prevPlan;
+      const updatedInternalWorkouts = prevPlan.workouts.map((workout) =>
+        workout.id === workoutId ? { ...workout, name: newName } : workout,
+      );
+      return {
+        ...prevPlan,
+        workouts: updatedInternalWorkouts,
+        updatedAt: Timestamp.now(),
+      };
+    });
+  }, []);
+
+  const setWorkoutTitle = useCallback(
+    (title: string) => {
+      setPlannedWorkouts((prevPlan) => {
+        const now = Timestamp.now();
+        if (!prevPlan) {
+          const defaultTemplates: IWorkout[] = Array.from(
+            { length: numberOfWorkoutsPerWeek },
+            (_, i) => ({
+              id: `workout-template-${Date.now()}-${i}`,
+              name: `Workout ${i + 1}`,
+              exercises: [],
+            }),
+          );
+          return createNewPlannedWorkouts(title, defaultTemplates);
+        }
+        return {
+          ...prevPlan,
+          name: title,
+          updatedAt: now,
+        };
+      });
+    },
+    [numberOfWorkoutsPerWeek],
   );
 
   /**
-   * Removes a set from an exercise in a workout template.
-   * This typically means decrementing the planned number of sets.
-   * @param workoutId - The ID of the workout template.
-   * @param exerciseId - The ID of the exercise within the workout.
+   * Prepares the current workout plan for saving.
+   * Ensures ID is finalized and timestamps are current.
+   * @returns The IPlannedWorkouts object ready for saving, or undefined if not ready.
    */
-  const removeSetFromExercise = useCallback(
-    (workoutId: string, exerciseId: string) => {
-      setWorkouts((prevWorkouts) =>
-        prevWorkouts.map((workout) => {
-          if (workout.id !== workoutId) {
-            return workout;
-          }
+  const preparePlanForSave = useCallback((): IPlannedWorkouts | undefined => {
+    if (!user) {
+      toast.error('User not authenticated. Cannot save workout plan.');
+      return undefined;
+    }
+    if (!plannedWorkouts) {
+      toast.error('Workout plan is not initialized. Cannot save.');
+      return undefined;
+    }
 
-          const updatedExercises = workout.exercises.map((exercise) => {
-            if (exercise.exerciseId !== exerciseId) {
-              return exercise;
-            }
-            toast.info(`Set removed from ${exercise.name} in ${workout.name}`);
-            return {
-              ...exercise,
-              sets: Math.max((exercise.sets || 0) - 1, 0),
-            };
-          });
+    const planName = plannedWorkouts.name || 'My Workout Plan';
+    const now = Timestamp.now();
 
-          return {
-            ...workout,
-            exercises: updatedExercises,
-          };
-        }),
-      );
-    },
-    [],
+    const finalId =
+      plannedWorkouts.id && !plannedWorkouts.id.startsWith('temp-plan-')
+        ? plannedWorkouts.id
+        : `${planName.replace(/\s+/g, '-')}-${now.toMillis()}`;
+
+    const planToSave: IPlannedWorkouts = {
+      ...plannedWorkouts,
+      id: finalId,
+      name: planName,
+      updatedAt: now,
+      createdAt: plannedWorkouts.createdAt || now,
+    };
+
+    setPlannedWorkouts(planToSave);
+    return planToSave;
+  }, [user, plannedWorkouts]);
+
+  const workouts = useMemo(
+    () => plannedWorkouts?.workouts || [],
+    [plannedWorkouts],
   );
 
-  const saveWorkoutsToPlannedWorkouts = useCallback(() => {
-    if (user) {
-      const plannedWorkoutsData: IPlannedWorkouts = {
-        id: `planned-workout-${Date.now()}`,
-        name: 'Planned Workouts',
-        workouts: workouts,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
-      setPlannedWorkouts(plannedWorkoutsData);
+  /**
+   * Saves the current workout plan to Firestore.
+   * Manages isSaving state and provides user feedback.
+   * @returns A promise that resolves to true if successful, false otherwise.
+   */
+  const saveWorkoutPlan = useCallback(async (): Promise<boolean> => {
+    const planToSave = preparePlanForSave();
+    if (!planToSave) {
+      return false;
     }
-  }, [user, workouts]);
+    setIsSaving(true);
+    try {
+      await addPlannedWorkout(planToSave);
+      return true;
+    } catch (error) {
+      console.error('Error saving workout plan:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  }, [preparePlanForSave]);
 
   return {
     isLoading,
-    workouts,
+    isSaving,
     plannedWorkouts,
+    workouts,
     numberOfWorkoutsPerWeek,
-
     addExerciseToWorkout,
     removeExerciseFromWorkout,
-    addSetToExercise,
-    removeSetFromExercise,
-    saveWorkoutsToPlannedWorkouts,
+    updateExerciseInWorkout,
+    preparePlanForSave,
+    setWorkoutName,
+    setWorkoutTitle,
+    saveWorkoutPlan,
   };
 };

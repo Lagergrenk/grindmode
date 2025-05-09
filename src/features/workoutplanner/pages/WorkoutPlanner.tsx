@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Loader2, PlusCircle } from 'lucide-react';
 import {
   DetailsDialog,
   ExerciseItem,
@@ -11,26 +11,25 @@ import {
   useExerciseData,
   useWorkoutPlanner,
   WorkoutColumn,
-} from '@/features/workoutplanner';
-import {
   IExerciseSearchResultItem,
   IPlannedExercise,
 } from '@/features/workoutplanner';
-import { Skeleton } from '@/components/ui';
-import { addPlannedWorkout } from '@/features/workoutplanner/';
+
+import { EditableText } from '@/components/ui/editable-text';
 import { toast } from 'sonner';
-import { getFirestoreErrorMessage } from '@/shared/utils/firestoreErrorHandler';
 
 export const WorkoutPlanner: React.FC = () => {
   const {
     workouts,
     plannedWorkouts,
     isLoading,
+    isSaving,
     addExerciseToWorkout,
     removeExerciseFromWorkout,
-    addSetToExercise,
-    removeSetFromExercise,
-    saveWorkoutsToPlannedWorkouts,
+    updateExerciseInWorkout,
+    setWorkoutTitle,
+    setWorkoutName,
+    saveWorkoutPlan,
   } = useWorkoutPlanner();
 
   const {
@@ -82,30 +81,54 @@ export const WorkoutPlanner: React.FC = () => {
   const handleCloseModals = () => {
     setCurrentWorkoutIdForOps(null);
     setExerciseDetailsToShow(null);
+    setSearchTerm('');
   };
 
-  const handleAddAllWorkoutsToFirebase = async () => {
-    try {
-      saveWorkoutsToPlannedWorkouts();
-      if (!plannedWorkouts) return;
-      await addPlannedWorkout(plannedWorkouts);
+  const handleModifySet = (
+    workoutId: string,
+    exercise: IPlannedExercise,
+    increase: boolean,
+  ) => {
+    const currentSets = exercise.sets || 0;
+    const newSets = increase ? currentSets + 1 : Math.max(0, currentSets - 1);
+    updateExerciseInWorkout(workoutId, exercise.exerciseId, {
+      sets: newSets,
+    });
+  };
 
-      toast.success('Workouts added successfully!');
-    } catch (error) {
-      toast.error(
-        `Failed to add workouts. Please try again: ${getFirestoreErrorMessage(error)}`,
-      );
+  const handleValueChange = (
+    workoutId: string,
+    exercise: IPlannedExercise,
+    reps: number | string,
+    property: 'reps' | 'weight',
+  ) => {
+    console.log('reps', reps);
+    const parsedReps = typeof reps === 'string' ? parseInt(reps, 10) : reps;
+    if (!isNaN(parsedReps)) {
+      updateExerciseInWorkout(workoutId, exercise.exerciseId, {
+        [property]: parsedReps,
+      });
     }
   };
 
-  if (isLoading) {
-    return <Skeleton className="h-full w-full" />;
-  }
+  const handleAddPlannedWorkoutsToFirebase = async () => {
+    const success = await saveWorkoutPlan();
+    if (success) {
+      toast.success('Workout plan saved successfully!');
+    } else {
+      toast.error('Failed to save workout plan.');
+    }
+  };
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Plan your workout</h1>
+        <EditableText
+          as="h1"
+          className="text-2xl font-bold"
+          initialValue={plannedWorkouts?.name || ''}
+          onSave={(newValue) => setWorkoutTitle(newValue)}
+        />
         <p className="text-sm text-gray-500">
           You prefer to work out {workouts.length} times a week.
         </p>
@@ -116,7 +139,11 @@ export const WorkoutPlanner: React.FC = () => {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>{workout.name}</CardTitle>
+                  <EditableText
+                    className="text-sm font-semibold"
+                    initialValue={workout.name}
+                    onSave={(newValue) => setWorkoutName(workout.id, newValue)}
+                  />
                 </div>
               </div>
             </CardHeader>
@@ -140,12 +167,25 @@ export const WorkoutPlanner: React.FC = () => {
                     <ExerciseItem
                       exercise={plannedExercise}
                       onAddSet={() =>
-                        addSetToExercise(workout.id, plannedExercise.exerciseId)
+                        handleModifySet(workout.id, plannedExercise, true)
                       }
                       onDeleteSet={() =>
-                        removeSetFromExercise(
+                        handleModifySet(workout.id, plannedExercise, false)
+                      }
+                      OnSaveReps={(reps) =>
+                        handleValueChange(
                           workout.id,
-                          plannedExercise.exerciseId,
+                          plannedExercise,
+                          reps,
+                          'reps',
+                        )
+                      }
+                      OnSaveWeight={(weight) =>
+                        handleValueChange(
+                          workout.id,
+                          plannedExercise,
+                          weight,
+                          'weight',
                         )
                       }
                     />
@@ -183,14 +223,14 @@ export const WorkoutPlanner: React.FC = () => {
           onViewExercise={handleViewExerciseDetails}
         />
       </SelectionDialog>
-      {/* Save button */}
       <div className="fixed bottom-4 right-4 z-50">
         <Button
           variant="default"
-          onClick={handleAddAllWorkoutsToFirebase}
-          disabled={isLoading}
+          onClick={handleAddPlannedWorkoutsToFirebase}
+          disabled={isLoading || !plannedWorkouts}
         >
-          Save Workout Templates
+          {isSaving && <Loader2 className="animate-spin mr-2" />}
+          Save Workout Plan
         </Button>
       </div>
     </div>

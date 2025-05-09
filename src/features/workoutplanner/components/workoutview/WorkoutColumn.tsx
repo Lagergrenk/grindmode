@@ -1,12 +1,12 @@
-import { Info, Trash2 } from 'lucide-react';
+import { Info, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@components/ui/button';
-
 import { IPlannedExercise, IWorkout } from '../../types';
 
 interface IWorkoutColumnProps {
   children: React.ReactNode;
   plannedExercise: IPlannedExercise;
   workout: IWorkout;
+  isSearching?: boolean;
   removeExerciseFromWorkout: (workoutId: string, exerciseId: string) => void;
   handleViewExerciseDetails: (exerciseId: string) => void;
 }
@@ -15,6 +15,7 @@ export const WorkoutColumn: React.FC<IWorkoutColumnProps> = ({
   children,
   plannedExercise,
   workout,
+  isSearching,
   removeExerciseFromWorkout,
   handleViewExerciseDetails,
 }) => {
@@ -32,7 +33,11 @@ export const WorkoutColumn: React.FC<IWorkoutColumnProps> = ({
               }
               aria-label={`View details for ${plannedExercise.name}`}
             >
-              <Info className="h-4 w-4" />
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Info className="h-4 w-4" />
+              )}
             </Button>
             <Button
               variant="ghost"
