@@ -1,8 +1,6 @@
 import React from 'react';
 import { Route, Routes as Switch, useLocation, Link } from 'react-router-dom';
-
 import { useAuth } from '@/features/auth/hooks/useAuth';
-
 import { authRoutes } from './features/auth/routes';
 import { ProtectedRoute } from './components/navigation';
 import { Dashboard } from './features/dashboard/pages/Dashboard';

@@ -1,126 +1,109 @@
-import { INutritionEntry } from '@/features/nutrition';
-import { FirestoreService } from '@/shared/services/firestore';
+import { IFoodSearchResult, INutrientInfo } from '@/features/nutrition';
+import { IImportMeta } from '../../../vite-env';
 
-const nutritionService = new FirestoreService<INutritionEntry>('nutrition');
+const VITE_USDA_API_KEY: IImportMeta = import.meta.env.VITE_USDA_API_KEY;
+const USDA_API_BASE_URL: IImportMeta = import.meta.env.VITE_USDA_API_BASE_URL;
 
-/**
- * Add a new nutrition entry to Firestore
- * @param entry - Nutrition entry to add
- */
-export const addNutritionEntry = async (
-  entry: Omit<INutritionEntry, 'date'> | Partial<INutritionEntry>,
-): Promise<string> => {
-  try {
-    return await nutritionService.add(entry);
-  } catch (error) {
-    console.error('Error adding nutrition entry:', error);
-    throw error;
-  }
+// Nutrient IDs from USDA API
+const NUTRIENT_IDS = {
+  calories: 1008, // Energy (kcal)
+  protein: 1003, // Protein
+  carbs: 1005, // Carbohydrates
+  fat: 1004, // Total lipids (fat)
+  fiber: 1079, // Fiber
+  sugar: 2000, // Sugars
+  sodium: 1093, // Sodium
 };
 
-/**
- * Get all nutrition entries from Firestore
- * @param max - Maximum number of entries to fetch
- * @returns
- */
-export const getNutritionEntries = async (
-  max?: number,
-): Promise<INutritionEntry[]> => {
-  try {
-    return await nutritionService.getAll(max);
-  } catch (error) {
-    console.error('Error fetching nutrition entries:', error);
-    return [];
-  }
-};
+export const usdaApi = {
+  /**
+   * Search for foods by name/description
+   */
+  searchFoods: async (
+    query: string,
+    pageSize = 20,
+  ): Promise<IFoodSearchResult[]> => {
+    try {
+      const response = await fetch(
+        `${USDA_API_BASE_URL}/foods/search?api_key=${VITE_USDA_API_KEY}&query=${encodeURIComponent(
+          query,
+        )}&pageSize=${pageSize}`,
+      );
 
-export const getNutritionEntryById = async (
-  entryId: string,
-): Promise<INutritionEntry | null> => {
-  try {
-    return await nutritionService.getById(entryId);
-  } catch (error) {
-    console.error(`Error fetching nutrition entry ${entryId}:`, error);
-    return null;
-  }
-};
+      if (!response.ok) {
+        throw new Error(`USDA API error: ${response.status}`);
+      }
 
-/**
- * Update a nutrition entry in Firestore
- * @param entryId - ID of the nutrition entry to update
- * @param entryData - Partial nutrition entry data to update
- */
-export const updateNutritionEntry = async (
-  entryId: string,
-  entryData: Partial<INutritionEntry>,
-): Promise<boolean> => {
-  try {
-    return await nutritionService.update(entryId, entryData);
-  } catch (error) {
-    console.error(`Error updating nutrition entry ${entryId}:`, error);
-    return false;
-  }
-};
+      const data = await response.json();
+      return data.foods || [];
+    } catch (error) {
+      console.error('Error searching foods:', error);
+      throw error;
+    }
+  },
 
-/**
- * Delete a nutrition entry from Firestore
- * @param entryId - ID of the nutrition entry to delete
- */
-export const deleteNutritionEntry = async (
-  entryId: string,
-): Promise<boolean> => {
-  try {
-    return await nutritionService.delete(entryId);
-  } catch (error) {
-    console.error(`Error deleting nutrition entry ${entryId}:`, error);
-    return false;
-  }
-};
+  /**
+   * Get detailed information about a specific food by its FDC ID
+   */
+  getFoodDetails: async (fdcId: number): Promise<IFoodSearchResult> => {
+    try {
+      const response = await fetch(
+        `${USDA_API_BASE_URL}/food/${fdcId}?api_key=${VITE_USDA_API_KEY}`,
+      );
 
-/**
- * Get nutrition entries by date
- * @param date - Date to fetch nutrition entries for
- */
-export const getNutritionEntriesByDate = async (
-  date: Date,
-): Promise<INutritionEntry[]> => {
-  try {
-    return await nutritionService.getByDate(date);
-  } catch (error) {
-    console.error('Error fetching nutrition entries by date:', error);
-    return [];
-  }
-};
+      if (!response.ok) {
+        throw new Error(`USDA API error: ${response.status}`);
+      }
 
-/**
- * Get nutrition entries in a date range
- * @param startDate - Date to start the range
- * @param endDate - Date to end the range
- */
-export const getNutritionInDateRange = async (
-  startDate: Date,
-  endDate: Date,
-): Promise<INutritionEntry[]> => {
-  try {
-    return await nutritionService.getByDateRange(startDate, endDate);
-  } catch (error) {
-    console.error('Error fetching nutrition entries in date range:', error);
-    return [];
-  }
-};
+      return await response.json();
+    } catch (error) {
+      console.error(`Error getting food details for ID ${fdcId}:`, error);
+      throw error;
+    }
+  },
 
-/**
- * Get nutrition summary for the last 7 days
- */
-export const getNutritionSummary = async (): Promise<INutritionEntry[]> => {
-  try {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 7);
+  /**
+   * Extract common nutrient values from food data
+   */
+  extractNutrients: (food: IFoodSearchResult): INutrientInfo => {
+    const nutrients = {
+      calories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      fiber: 0,
+      sugar: 0,
+      sodium: 0,
+    };
 
-    return await nutritionService.getByDateRange(startDate, today);
-  } catch (error) {
-    console.error('Error fetching nutrition summary:', error);
-    return [];
-  }
+    food.foodNutrients.forEach((nutrient) => {
+      switch (nutrient.nutrientId) {
+        case NUTRIENT_IDS.calories:
+          nutrients.calories = nutrient.value;
+          break;
+        case NUTRIENT_IDS.protein:
+          nutrients.protein = nutrient.value;
+          break;
+        case NUTRIENT_IDS.carbs:
+          nutrients.carbs = nutrient.value;
+          break;
+        case NUTRIENT_IDS.fat:
+          nutrients.fat = nutrient.value;
+          break;
+        case NUTRIENT_IDS.fiber:
+          nutrients.fiber = nutrient.value;
+          break;
+        case NUTRIENT_IDS.sugar:
+          nutrients.sugar = nutrient.value;
+          break;
+        case NUTRIENT_IDS.sodium:
+          nutrients.sodium = nutrient.value;
+          break;
+        default:
+          break;
+      }
+    });
+
+    return nutrients;
+  },
 };

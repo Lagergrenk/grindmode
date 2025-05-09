@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { IFoodSearchResult } from '@/features/nutrition/types';
-import { usdaApi } from '@/services/usda.api.service';
+import { usdaApi } from '@/features/nutrition/api';
 import { useDebounce } from '@/hooks/useDebounce';
 import { FoodSearchBar } from './FoodSearchBar';
 import { FoodSearchResults } from './FoodSearchResults';

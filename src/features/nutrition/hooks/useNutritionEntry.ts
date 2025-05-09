@@ -5,7 +5,7 @@ import {
   deleteNutritionEntry,
   getNutritionEntries,
   getNutritionSummary,
-} from '@/features/nutrition/api';
+} from '@/features/nutrition/firestore';
 import { INutritionEntry } from '@/features/nutrition';
 import { isToday } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';

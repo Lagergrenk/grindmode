@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { IFoodSearchResult } from '@/features/nutrition/types';
-import { usdaApi } from '@/services/usda.api.service';
+import { usdaApi } from '@/features/nutrition/api';
 
 interface IFoodSearchItemProps {
   food: IFoodSearchResult;

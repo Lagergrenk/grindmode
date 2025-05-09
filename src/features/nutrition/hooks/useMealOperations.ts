@@ -4,7 +4,7 @@ import {
   addNutritionEntry,
   getNutritionEntryById,
   updateNutritionEntry,
-} from '@/features/nutrition/api';
+} from '@/features/nutrition/firestore';
 import { calculateTotal } from '@/shared/utils/calculateTotalNutrients';
 
 interface IMealOperationsProps {
