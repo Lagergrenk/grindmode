@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MealForm } from './forms/MealForm';
 import { FoodItemForm } from './forms/FoodItemForm';
-import { IFoodItem, IMeal } from '@/types';
+import { IFoodItem, IMeal } from '@/features/nutrition/types';
 import { Timestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {

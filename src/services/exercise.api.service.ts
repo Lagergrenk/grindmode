@@ -1,4 +1,4 @@
-import { IExerciseSearchResult } from '@/types';
+import { IExerciseSearchResultItem } from '@/features/workoutplanner';
 import { IImportMeta } from '../../vite-env';
 
 const EXERCISE_BASE_URL: IImportMeta = import.meta.env.VITE_EXERCISE_BASE_URL;
@@ -15,7 +15,7 @@ export const exerciseApi = {
    */
   getExerciseById: async (
     id: string,
-  ): Promise<IApiResponse<IExerciseSearchResult>> => {
+  ): Promise<IApiResponse<IExerciseSearchResultItem>> => {
     try {
       const response = await fetch(`${EXERCISE_BASE_URL}/exercises/${id}`);
       if (!response.ok) {
@@ -33,7 +33,7 @@ export const exerciseApi = {
    */
   searchExercises: async (
     query: string,
-  ): Promise<IApiResponse<IExerciseSearchResult[]>> => {
+  ): Promise<IApiResponse<IExerciseSearchResultItem[]>> => {
     try {
       const response = await fetch(
         `${EXERCISE_BASE_URL}/exercises/autocomplete?search=${encodeURIComponent(

@@ -1,5 +1,5 @@
-import { IWorkout } from '@/types';
-import { FirestoreService } from './firestore.service';
+import { IWorkout } from '@/features/workoutplanner';
+import { FirestoreService } from '@/shared/services/firestore';
 
 const workoutsService = new FirestoreService<IWorkout>('workouts');
 
@@ -84,7 +84,7 @@ export const getWorkoutsInDateRange = async (
  */
 export const getWorkoutSummary = async (): Promise<{
   recentWorkouts: number;
-  totalDuration: number;
+
   lastWorkout: (IWorkout & { id: string }) | null;
 }> => {
   try {
@@ -93,18 +93,13 @@ export const getWorkoutSummary = async (): Promise<{
     startDate.setDate(endDate.getDate() - 7);
 
     const recentWorkouts = await getWorkoutsInDateRange(startDate, endDate);
-    const totalDuration = recentWorkouts.reduce(
-      (sum, workout) => sum + (workout.duration || 0),
-      0,
-    );
 
     return {
       recentWorkouts: recentWorkouts.length,
-      totalDuration,
       lastWorkout: recentWorkouts[0] || null,
     };
   } catch (error) {
     console.error('Error fetching workout summary:', error);
-    return { recentWorkouts: 0, totalDuration: 0, lastWorkout: null };
+    return { recentWorkouts: 0, lastWorkout: null };
   }
 };

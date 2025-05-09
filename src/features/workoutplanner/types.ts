@@ -1,92 +1,61 @@
 import { Timestamp } from 'firebase/firestore';
 
 /**
- * Base exercise interface with common properties
+ * Represents a scheduled exercise in a workout plan.
+ * This is used for tracking exercises that are part of a scheduled workout session.
  */
 export interface IExerciseBase {
-  id?: string;
-  name: string;
-  notes?: string;
-}
-
-/**
- * Detailed exercise definition for the exercise library
- */
-export interface IExerciseDefinition extends IExerciseBase {
-  muscleGroup: string;
-  equipment?: string;
-  instructions?: string[];
-  imageUrl?: string;
-  targetMuscles?: string[];
-  secondaryMuscles?: string[];
-  bodyParts?: string[];
-}
-
-/**
- * Exercise with tracking metrics for workouts
- */
-export interface IExerciseWithMetrics extends IExerciseBase {
-  sets: number;
-  reps: number;
-  weight: number;
-  duration?: number;
-  completed?: boolean;
-}
-
-/**
- * Search result for exercises from the exercise API
- */
-export interface IExerciseSearchResult {
   exerciseId: string;
   name: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  date?: Timestamp;
+}
+
+/**
+ * Represents the result of an exercise search.
+ * This is used for displaying search results in the UI.
+ */
+export interface IExerciseSearchResultItem extends IExerciseBase {
   gifUrl?: string;
-  instructions?: string[];
   targetMuscles?: string[];
   bodyParts?: string[];
   equipments?: string[];
-  secoundaryMuscles?: string[];
-  score?: number;
+  secondaryMuscles?: string[];
+  instructions?: string[];
 }
 
 /**
- * Completed workout session
+ * Represents a scheduled exercise in a workout plan.
+ * This is used for tracking exercises that are part of a scheduled workout session.
  */
-export interface IWorkout {
-  id?: string;
-  name: string;
-  date: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  exercises: IExerciseWithMetrics[];
-  notes?: string;
-  duration?: number;
-}
-
-/**
- * Scheduled exercise for workout planning
- */
-export interface IScheduledExercise extends IExerciseDefinition {
+export interface IPlannedExercise extends IExerciseBase {
   sets?: number;
   reps?: number;
   weight?: number;
-  notes?: string;
-  completed?: boolean;
 }
 
 /**
- * Workout day for weekly planning
+ * Represents a workout template.
+ * This is used for defining a workout routine that can be scheduled.
  */
-export interface IWorkoutDay {
-  date: Date;
-  dayName: string; // Monday, Tuesday, etc.
-  exercises: IScheduledExercise[];
-  isRecommendedWorkoutDay?: boolean;
+
+export interface IWorkout {
+  id: string;
+  name: string;
+  exercises: IPlannedExercise[];
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 /**
- * Weekly workout plan
+ * Schedule for workout
  */
-export interface IWorkoutWeek {
-  days: IWorkoutDay[];
-  startDate: Date;
+export interface IPlannedWorkouts {
+  id: string;
+  name: string;
+  workouts: IWorkout[];
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  date?: Timestamp;
 }

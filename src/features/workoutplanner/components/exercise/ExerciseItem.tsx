@@ -1,106 +1,91 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Info, MoreVertical } from 'lucide-react';
+import React from 'react'; // Removed useState as it's not used here
+import { IPlannedExercise } from '../../types';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { IExerciseDefinition, IScheduledExercise } from '../../types';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+  Table,
+  TableHeader,
+  TableRow,
+  TableBody,
+  TableCell,
+  TableHead,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Trash2 } from 'lucide-react';
+
+// Removed unused import: import { set } from 'date-fns';
 
 /**
  * Props for the ExerciseItem component
  */
 interface IExerciseItemProps {
-  exercise: IExerciseDefinition | IScheduledExercise;
-  onView?: (exercise: IExerciseDefinition | IScheduledExercise) => void;
-  onEdit?: (exercise: IExerciseDefinition | IScheduledExercise) => void;
-  onDelete?: (id: string) => void;
-  onDuplicate?: (exercise: IExerciseDefinition | IScheduledExercise) => void;
+  exercise: IPlannedExercise;
+  onAddSet?: (exerciseId: string) => void;
+  onDeleteSet?: (exerciseId: string) => void;
   className?: string;
   id?: string;
 }
 
 /**
- * Exercise item component for displaying exercises in workout planner
- * Supports contextual actions and different states
+ * Exercise item component for displaying exercises in workout planner.
+ * Renders a table of sets with weight and reps, and allows adding new sets.
  */
 export const ExerciseItem: React.FC<IExerciseItemProps> = ({
   exercise,
-  onView,
-  onEdit,
-  onDelete,
-  onDuplicate,
+  onAddSet,
+  onDeleteSet,
   className,
   id,
 }) => {
+  const { sets = 0, weight = 0, reps = '0', exerciseId } = exercise;
+
   return (
-    <Card
+    <div
+      className={`rounded border p-4 bg-card text-card-foreground ${className ?? ''}`}
       id={id}
-      className={cn('relative hover:shadow-md transition-all', className)}
     >
-      <CardContent className="p-3">
-        <div className="flex justify-between items-start mb-1">
-          <div>
-            <h3 className="font-medium text-sm line-clamp-1">
-              {exercise.name}
-            </h3>
-            <p className="text-xs text-muted-foreground line-clamp-1">
-              {exercise.muscleGroup}
-            </p>
-          </div>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <MoreVertical size={14} />
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-1/4">Set</TableHead>
+            <TableHead className="w-1/4">Reps</TableHead>
+            <TableHead className="w-1/4">Weight</TableHead>
+            <TableHead className="w-1/4 text-right"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: sets }, (_, index) => (
+            <TableRow key={index}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{String(reps)}</TableCell>
+              <TableCell>{weight}</TableCell>
+              <TableCell className="text-right">
+                {sets > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={
+                      onDeleteSet ? () => onDeleteSet(exerciseId) : undefined
+                    }
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+          <TableRow>
+            <TableCell colSpan={4} className="text-center ">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onAddSet ? () => onAddSet(exerciseId) : undefined}
+                className="w-full"
+              >
+                <PlusCircle className="h-full w-3" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {onView && (
-                <DropdownMenuItem onClick={() => onView(exercise)}>
-                  <Info className="mr-2 h-4 w-4" />
-                  View details
-                </DropdownMenuItem>
-              )}
-              {onEdit && (
-                <DropdownMenuItem onClick={() => onEdit(exercise)}>
-                  Edit
-                </DropdownMenuItem>
-              )}
-              {onDuplicate && (
-                <DropdownMenuItem onClick={() => onDuplicate(exercise)}>
-                  Duplicate
-                </DropdownMenuItem>
-              )}
-              {onDelete && exercise.id && (
-                <DropdownMenuItem
-                  onClick={() => onDelete(exercise.id!)}
-                  className="text-destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {exercise.equipment && (
-          <Badge variant="outline" className="text-xs mt-1">
-            {exercise.equipment}
-          </Badge>
-        )}
-
-        {exercise.notes && (
-          <p className="text-xs text-muted-foreground mt-2 italic line-clamp-2">
-            {exercise.notes}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
   );
 };

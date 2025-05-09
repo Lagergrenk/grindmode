@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { IFoodSearchResult } from '@/types';
+import { IFoodSearchResult } from '@/features/nutrition/types';
 import { usdaApi } from '@/services/usda.api.service';
 import { useDebounce } from '@/hooks/useDebounce';
 import { FoodSearchBar } from './FoodSearchBar';
@@ -85,7 +85,6 @@ export const FoodSearch: React.FC<IFoodSearchProps> = ({
 
   const handleSelectFood = (food: IFoodSearchResult) => {
     setShowDropdown(false);
-    console.log('showdropdown inside handle', showDropdown);
     onSelectFood(food);
     if (!showInline) {
       clearSearch();

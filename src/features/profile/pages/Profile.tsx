@@ -25,7 +25,6 @@ export const Profile: React.FC = () => {
 
   const { profile, refreshProfile } = useProfileState();
 
-  console.log('Profile:', profile);
   useEffect(() => {
     refreshProfile();
   }, [refreshProfile]);

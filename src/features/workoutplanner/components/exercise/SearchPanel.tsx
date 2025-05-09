@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { IExerciseDefinition } from '../../types';
+import { IExerciseSearchResultItem } from '../../types';
 import { cn } from '@/lib/utils';
 import { SearchResults } from './SearchResults';
 
@@ -11,12 +11,12 @@ import { SearchResults } from './SearchResults';
  */
 interface IExerciseSearchPanelProps {
   searchTerm: string;
-  searchResults: IExerciseDefinition[];
+  searchResults: IExerciseSearchResultItem[];
   isSearching: boolean;
   error: string | null;
   onSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSelectExercise: (exercise: IExerciseDefinition) => void;
-  onViewExercise?: (exercise: IExerciseDefinition) => void;
+  onSelectExercise: (exerciseId: string) => void;
+  onViewExercise?: (exerciseId: string) => void;
   className?: string;
 }
 

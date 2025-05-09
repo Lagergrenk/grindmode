@@ -1,173 +1,198 @@
 import React, { useState } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle } from 'lucide-react';
 import {
   DetailsDialog,
+  ExerciseItem,
+  IWorkout,
   SearchPanel,
   SelectionDialog,
-  WeekNavHeader,
-  WorkoutDayColumn,
-  WorkoutWeekView,
   useExerciseData,
   useWorkoutPlanner,
+  WorkoutColumn,
 } from '@/features/workoutplanner';
-import { IExerciseDefinition, IScheduledExercise } from '@/types/workout.types';
+import {
+  IExerciseSearchResultItem,
+  IPlannedExercise,
+} from '@/features/workoutplanner';
+import { Skeleton } from '@/components/ui';
+import { addPlannedWorkout } from '@/features/workoutplanner/';
+import { toast } from 'sonner';
+import { getFirestoreErrorMessage } from '@/shared/utils/firestoreErrorHandler';
 
-/**
- * Main workout planner page component
- * Allows users to plan and manage their weekly workouts
- */
 export const WorkoutPlanner: React.FC = () => {
-  // Fetch workout data and operations from our hook
   const {
-    workoutDays,
+    workouts,
+    plannedWorkouts,
     isLoading,
-    handleNavigateWeek,
-    handleDeleteExercise,
-    handleDuplicateExercise,
-    handleAddExerciseToDay,
-    isToday,
+    addExerciseToWorkout,
+    removeExerciseFromWorkout,
+    addSetToExercise,
+    removeSetFromExercise,
+    saveWorkoutsToPlannedWorkouts,
   } = useWorkoutPlanner();
 
   const {
     searchTerm,
     searchResults,
     isSearching,
-    error,
+    error: searchError,
     setSearchTerm,
-    selectExercise,
+    selectExercise: fetchExerciseDetails,
   } = useExerciseData();
 
-  // Local state for UI interactions
-  const [selectedDayName, setSelectedDayName] = useState<string | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<
-    IExerciseDefinition | IScheduledExercise | null
+  const [currentWorkoutIdForOps, setCurrentWorkoutIdForOps] = useState<
+    string | null
   >(null);
-  const [viewMode, setViewMode] = useState<'view' | 'edit' | null>(null);
+  const [exerciseDetailsToShow, setExerciseDetailsToShow] =
+    useState<IExerciseSearchResultItem | null>(null);
 
-  /**
-   * Returns singular or plural form of "day" based on count
-   * @param num - Number of days
-   */
-  const getDayWord = (num: number) => (num === 1 ? 'day' : 'days');
-
-  /**
-   * Handles initiating the add exercise flow for a specific day
-   * @param dayName - The day to add an exercise to (e.g., "Monday")
-   */
-  const handleAddExercise = (dayName: string) => {
-    setSelectedDayName(dayName);
+  const handleOpenAddExerciseDialog = (workoutId: string) => {
+    setCurrentWorkoutIdForOps(workoutId);
   };
 
-  /**
-   * Handles viewing exercise details
-   * @param exercise - The exercise to view details for
-   */
-  const handleViewExercise = (
-    exercise: IScheduledExercise | IExerciseDefinition,
-  ) => {
-    selectExercise(exercise);
-    setViewMode('view');
-  };
-
-  /**
-   * Handles editing an exercise
-   * @param exercise - The exercise to edit
-   */
-  const handleEditExercise = (exercise: IScheduledExercise) => {
-    setSelectedExercise(exercise);
-    setViewMode('edit');
-  };
-
-  /**
-   * Handles selecting an exercise from the search dialog
-   * @param exercise - The selected exercise to add to a day
-   */
-  const handleSelectExercise = async (exercise: IExerciseDefinition) => {
-    const selectedExercise = await selectExercise(exercise.id);
-    if (selectedExercise) {
-      setSelectedExercise(selectedExercise);
-      setViewMode('edit');
-    } else {
-      setSelectedExercise(null);
-      setViewMode(null);
+  const handleViewExerciseDetails = async (exerciseId: string) => {
+    const details = await fetchExerciseDetails(exerciseId);
+    if (details) {
+      setExerciseDetailsToShow(details);
     }
   };
 
-  /**
-   * Closes all open modals and dialogs
-   */
-  const handleCloseModals = () => {
-    setSelectedExercise(null);
-    setViewMode(null);
-    setSelectedDayName(null);
+  const handleSelectExerciseForWorkout = (
+    exerciseDefinition: IExerciseSearchResultItem,
+  ) => {
+    if (currentWorkoutIdForOps) {
+      addExerciseToWorkout(currentWorkoutIdForOps, exerciseDefinition);
+    }
+    handleCloseModals();
   };
 
-  // Determine how many workout days per week the user prefers
-  const workoutDaysPerWeek =
-    workoutDays.filter((day) => day.isRecommendedWorkoutDay).length || 3;
+  const handleAddExerciseToWorkout = (exerciseId: string) => {
+    if (currentWorkoutIdForOps) {
+      const selectedExercise = searchResults.find(
+        (exercise) => exercise.exerciseId === exerciseId,
+      );
+      if (selectedExercise) {
+        addExerciseToWorkout(currentWorkoutIdForOps, selectedExercise);
+      }
+    }
+  };
+
+  const handleCloseModals = () => {
+    setCurrentWorkoutIdForOps(null);
+    setExerciseDetailsToShow(null);
+  };
+
+  const handleAddAllWorkoutsToFirebase = async () => {
+    try {
+      saveWorkoutsToPlannedWorkouts();
+      if (!plannedWorkouts) return;
+      await addPlannedWorkout(plannedWorkouts);
+
+      toast.success('Workouts added successfully!');
+    } catch (error) {
+      toast.error(
+        `Failed to add workouts. Please try again: ${getFirestoreErrorMessage(error)}`,
+      );
+    }
+  };
+
+  if (isLoading) {
+    return <Skeleton className="h-full w-full" />;
+  }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Workout Planner</h1>
-
-      <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          You prefer working out {workoutDaysPerWeek}{' '}
-          {getDayWord(workoutDaysPerWeek)} per week.
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid grid-cols-1 gap-4">
-        <WeekNavHeader onNavigateWeek={handleNavigateWeek} />
-        <WorkoutWeekView isLoading={isLoading}>
-          {workoutDays.map((day) => (
-            <WorkoutDayColumn
-              key={day.dayName}
-              day={day}
-              isToday={day.date ? isToday(day.date) : false}
-              onAddExercise={handleAddExercise}
-              onEditExercise={handleEditExercise}
-              onViewExercise={handleViewExercise}
-              onDeleteExercise={handleDeleteExercise}
-              onDuplicateExercise={handleDuplicateExercise}
-              id={`day-${day.dayName}`}
-            />
-          ))}
-        </WorkoutWeekView>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Plan your workout</h1>
+        <p className="text-sm text-gray-500">
+          You prefer to work out {workouts.length} times a week.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {workouts.map((workout: IWorkout) => (
+          <Card key={workout.id} id={`workout-${workout.id}`}>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle>{workout.name}</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="outline"
+                className="w-full mb-4"
+                onClick={() => handleOpenAddExerciseDialog(workout.id)}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Exercise
+              </Button>
+              <div className="space-y-4">
+                {workout.exercises.map((plannedExercise: IPlannedExercise) => (
+                  <WorkoutColumn
+                    key={plannedExercise.exerciseId}
+                    plannedExercise={plannedExercise}
+                    workout={workout}
+                    removeExerciseFromWorkout={removeExerciseFromWorkout}
+                    handleViewExerciseDetails={handleViewExerciseDetails}
+                  >
+                    <ExerciseItem
+                      exercise={plannedExercise}
+                      onAddSet={() =>
+                        addSetToExercise(workout.id, plannedExercise.exerciseId)
+                      }
+                      onDeleteSet={() =>
+                        removeSetFromExercise(
+                          workout.id,
+                          plannedExercise.exerciseId,
+                        )
+                      }
+                    />
+                  </WorkoutColumn>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Exercise Detail Dialog */}
       <DetailsDialog
-        exercise={selectedExercise}
-        isOpen={!!selectedExercise}
+        exercise={exerciseDetailsToShow}
+        isOpen={!!exerciseDetailsToShow}
         onClose={handleCloseModals}
-        onSave={handleAddExerciseToDay}
-        mode={viewMode}
       />
 
-      {/* Exercise Selection Dialog */}
       <SelectionDialog
-        dayName={selectedDayName}
-        isOpen={!!selectedDayName}
+        title={`Add Exercise to ${
+          workouts.find((w) => w.id === currentWorkoutIdForOps)?.name ||
+          'Workout'
+        }`}
+        isOpen={!!currentWorkoutIdForOps}
         onClose={handleCloseModals}
-        onSelectExercise={handleSelectExercise}
-        onViewExercise={handleViewExercise}
+        onSelectExercise={handleSelectExerciseForWorkout}
+        onViewExercise={() => console.log('')}
       >
         <SearchPanel
           searchTerm={searchTerm}
           searchResults={searchResults}
           isSearching={isSearching}
-          error={error}
+          error={searchError}
           onSearchChange={(e) => setSearchTerm(e.target.value)}
-          onSelectExercise={(exercise) => {
-            selectExercise(exercise);
-            handleSelectExercise(exercise);
-          }}
-          onViewExercise={handleViewExercise}
+          onSelectExercise={handleAddExerciseToWorkout}
+          onViewExercise={handleViewExerciseDetails}
         />
       </SelectionDialog>
+      {/* Save button */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          variant="default"
+          onClick={handleAddAllWorkoutsToFirebase}
+          disabled={isLoading}
+        >
+          Save Workout Templates
+        </Button>
+      </div>
     </div>
   );
 };

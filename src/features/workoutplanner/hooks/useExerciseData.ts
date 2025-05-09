@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { exerciseApi } from '@/services/exercise.api.service';
-import { IExerciseDefinition, IExerciseSearchResult } from '../types';
+import { IExerciseSearchResultItem, IPlannedExercise } from '../types';
 import { useDebounce } from '@/hooks/useDebounce';
 
 /**
@@ -8,14 +8,17 @@ import { useDebounce } from '@/hooks/useDebounce';
  */
 export interface IUseExerciseData {
   searchTerm: string;
-  searchResults: IExerciseDefinition[];
+  searchResults: IExerciseSearchResultItem[];
   isSearching: boolean;
   error: string | null;
   setSearchTerm: (term: string) => void;
-  selectExercise: (exerciseId: string) => Promise<IExerciseDefinition | null>;
-  mapApiExerciseToDefinition: (
-    apiExercise: IExerciseSearchResult,
-  ) => IExerciseDefinition;
+  selectExercise: (
+    exerciseId: string,
+  ) => Promise<IExerciseSearchResultItem | null>;
+
+  mapApiExerciseToPlannedExercise: (
+    apiExercise: IExerciseSearchResultItem,
+  ) => IPlannedExercise;
 }
 
 /**
@@ -26,30 +29,19 @@ export const useExerciseData = (): IUseExerciseData => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [searchResults, setSearchResults] = useState<IExerciseDefinition[]>([]);
+  const [searchResults, setSearchResults] = useState<
+    IExerciseSearchResultItem[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Maps API exercise data to application exercise definition format
-   * @param apiExercise - Exercise data from API
-   * @returns Formatted exercise definition
-   */
-  const mapApiExerciseToDefinition = useCallback(
-    (apiExercise: IExerciseSearchResult): IExerciseDefinition => {
+  const mapApiExerciseToPlannedExercise = useCallback(
+    (apiExercise: IExerciseSearchResultItem): IPlannedExercise => {
       return {
-        id: apiExercise.exerciseId,
+        exerciseId: apiExercise.exerciseId,
         name: apiExercise.name,
-        muscleGroup: apiExercise.targetMuscles?.length
-          ? apiExercise.targetMuscles[0]
-          : 'General',
-        equipment: apiExercise.equipments?.length
-          ? apiExercise.equipments[0]
-          : undefined,
-        instructions: apiExercise.instructions || [],
-        imageUrl: apiExercise.gifUrl,
-        targetMuscles: apiExercise.targetMuscles,
-        secondaryMuscles: apiExercise.secoundaryMuscles,
-        bodyParts: apiExercise.bodyParts,
+        sets: 0,
+        reps: 0,
+        weight: 0,
       };
     },
     [],
@@ -73,10 +65,7 @@ export const useExerciseData = (): IUseExerciseData => {
           await exerciseApi.searchExercises(debouncedSearchTerm);
 
         if (apiResults.success && Array.isArray(apiResults.data)) {
-          const formattedResults = apiResults.data.map(
-            mapApiExerciseToDefinition,
-          );
-          setSearchResults(formattedResults);
+          setSearchResults(apiResults.data);
         } else {
           setError("Couldn't retrieve exercise data. Format error.");
           setSearchResults([]);
@@ -91,7 +80,7 @@ export const useExerciseData = (): IUseExerciseData => {
     };
 
     performSearch();
-  }, [debouncedSearchTerm, mapApiExerciseToDefinition]);
+  }, [debouncedSearchTerm]);
 
   /**
    * Selects an exercise and fetches its full details
@@ -99,11 +88,11 @@ export const useExerciseData = (): IUseExerciseData => {
    * @returns The complete exercise definition or null if failed
    */
   const selectExercise = useCallback(
-    async (exerciseId: string): Promise<IExerciseDefinition | null> => {
+    async (exerciseId: string): Promise<IExerciseSearchResultItem | null> => {
       try {
         const fullExercise = await exerciseApi.getExerciseById(exerciseId);
         if (fullExercise.success) {
-          return mapApiExerciseToDefinition(fullExercise.data);
+          return fullExercise.data;
         } else {
           setError('Failed to fetch exercise details. Please try again.');
           return null;
@@ -114,7 +103,7 @@ export const useExerciseData = (): IUseExerciseData => {
         return null;
       }
     },
-    [mapApiExerciseToDefinition],
+    [],
   );
 
   return {
@@ -124,6 +113,6 @@ export const useExerciseData = (): IUseExerciseData => {
     error,
     setSearchTerm,
     selectExercise,
-    mapApiExerciseToDefinition,
+    mapApiExerciseToPlannedExercise,
   };
 };

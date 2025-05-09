@@ -18,9 +18,9 @@ import { getCurrentUserId } from '@/shared/utils/getCurrentUserId';
 import { db } from '@/config/firebase';
 
 export interface IFirestoreTimestamps {
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  date: Timestamp;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+  date?: Timestamp;
 }
 
 export interface IQueryFilter {

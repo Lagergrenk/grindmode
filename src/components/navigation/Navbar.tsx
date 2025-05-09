@@ -1,15 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import {
-  Bell,
-  User,
-  LogOut,
-  Settings,
-  ChevronDown,
-  Moon,
-  Sun,
-} from 'lucide-react';
+import { Bell, User, LogOut, ChevronDown, Moon, Sun } from 'lucide-react';
 import {
   Avatar,
   AvatarImage,
@@ -109,10 +101,7 @@ export const Navbar: React.FC<INavbarProps> = ({
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
+
                 <DropdownMenuItem
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 >

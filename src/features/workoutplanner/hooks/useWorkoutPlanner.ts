@@ -1,13 +1,14 @@
-import { useState, useCallback, useEffect } from 'react';
-import { addDays, startOfWeek, isSameDay } from 'date-fns';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useAppState } from '@/hooks/useAppState';
-import { toast } from 'sonner';
 import {
-  IWorkoutDay,
-  IExerciseDefinition,
-  IScheduledExercise,
-} from '@/types/workout.types';
+  IExerciseSearchResultItem,
+  IPlannedExercise,
+  IPlannedWorkouts,
+  IWorkout,
+} from '@/features/workoutplanner';
+import { toast } from 'sonner';
+import { Timestamp } from 'firebase/firestore';
 
 /**
  * Custom hook for managing workout planner state and operations
@@ -16,211 +17,213 @@ import {
 export const useWorkoutPlanner = () => {
   const { user } = useAuth();
   const { state } = useAppState();
-  const { workoutDaysPerWeek = 3 } = state.userPreferences;
-  const [workoutDays, setWorkoutDays] = useState<IWorkoutDay[]>([]);
+  const [numberOfWorkoutsPerWeek] = useState<number>(
+    state.userPreferences.workoutDaysPerWeek,
+  );
+  const [workouts, setWorkouts] = useState<IWorkout[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date>(
-    startOfWeek(new Date(), { weekStartsOn: 1 }),
-  );
-  const [currentDate] = useState<Date>(new Date());
 
-  /**
-   * Initializes empty workout days for a week
-   * @param startDate - Beginning date of the week to initialize
-   */
-  const initializeWeekDays = useCallback(
-    (startDate: Date): IWorkoutDay[] => {
-      const dayNames = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday',
-      ];
+  const [plannedWorkouts, setPlannedWorkouts] = useState<IPlannedWorkouts>();
 
-      // Create empty days for the week
-      return dayNames.map((dayName, index) => {
-        const date = addDays(startDate, index);
-        // Mark days as recommended workout days based on user preference
-        const isRecommendedWorkoutDay = index < workoutDaysPerWeek;
-
-        return {
-          date,
-          dayName,
-          exercises: [],
-          isRecommendedWorkoutDay,
-        };
-      });
-    },
-    [workoutDaysPerWeek],
-  );
-
-  /**
-   * Loads workout data for a specific date range
-   * @param startDate - Beginning of date range to fetch
-   */
-  const loadWorkoutData = useCallback(
-    async (startDate: Date) => {
-      if (!user) return;
-
-      setIsLoading(true);
-      try {
-        const days = initializeWeekDays(startDate);
-        setWorkoutDays(days);
-
-        // Here you would fetch actual workout data from your backend
-        // and merge it with the initialized days
-      } catch (error) {
-        console.error('Failed to load workout data:', error);
-        toast.error('Failed to load workout data');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [user, initializeWeekDays],
-  );
-
-  // Initialize the current week
   useEffect(() => {
-    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-    setCurrentWeekStart(weekStart);
-    loadWorkoutData(weekStart);
-  }, [user, loadWorkoutData]);
+    const initializeWorkoutTemplates = () => {
+      setIsLoading(true);
+      if (user) {
+        const defaultTemplates: IWorkout[] = Array.from(
+          { length: numberOfWorkoutsPerWeek },
+          (_, i) => ({
+            id: `workout-template-${Date.now()}-${i}`,
+            name: `Workout ${i + 1}`,
+            exercises: [],
+          }),
+        );
+        setWorkouts(defaultTemplates);
+      } else {
+        setWorkouts([]);
+      }
+      setIsLoading(false);
+    };
+
+    initializeWorkoutTemplates();
+  }, [user, numberOfWorkoutsPerWeek]);
 
   /**
-   * Handles navigation between weeks
-   * @param startDate - First day of the new week
+   * Adds an exercise definition to a specific workout template.
+   * Ensures that an exercise is not added if it already exists in the template.
+   * @param workoutId - The ID of the workout template.
+   * @param exercise - The exercise definition to add.
    */
-  const handleNavigateWeek = (startDate: Date) => {
-    setCurrentWeekStart(startDate);
-    loadWorkoutData(startDate);
-  };
-
-  /**
-   * Handles deleting an exercise from a specific day
-   * @param exerciseId - ID of the exercise to delete
-   * @param dayName - The day from which to delete the exercise
-   */
-  const handleDeleteExercise = (exerciseId: string, dayName: string) => {
-    try {
-      setWorkoutDays((prevDays) =>
-        prevDays.map((day) => {
-          if (day.dayName === dayName) {
-            return {
-              ...day,
-              exercises: day.exercises.filter((ex) => ex.id !== exerciseId),
-            };
+  const addExerciseToWorkout = useCallback(
+    (workoutId: string, exercise: IExerciseSearchResultItem) => {
+      setWorkouts((prevWorkouts) =>
+        prevWorkouts.map((workout) => {
+          if (workout.id !== workoutId) {
+            return workout;
           }
-          return day;
+          if (
+            workout.exercises.some(
+              (ex) => ex.exerciseId === exercise.exerciseId,
+            )
+          ) {
+            toast.error('Exercise Already Exists', {
+              description: `"${exercise.name}" is already in "${workout.name}".`,
+            });
+            return workout;
+          }
+          const plannedExercise: IPlannedExercise = {
+            ...exercise,
+            sets: 1,
+            reps: 10,
+            weight: 0,
+          };
+
+          toast('Exercise Added', {
+            description: `"${exercise.name}" added to "${workout.name}".`,
+          });
+          return {
+            ...workout,
+            exercises: [...workout.exercises, plannedExercise],
+          };
         }),
       );
-
-      toast('Exercise deleted', {
-        description: `Exercise deleted from ${dayName}`,
-      });
-    } catch (error) {
-      console.error('Error deleting exercise:', error);
-      toast.error('Failed to delete exercise');
-    }
-  };
+    },
+    [],
+  );
 
   /**
-   * Handles duplicating an exercise on a specific day
-   * @param exercise - The exercise to duplicate
-   * @param dayName - The day on which to duplicate the exercise
+   * Removes an exercise from a specific workout template.
+   * @param workoutId - The ID of the workout template.
+   * @param exerciseId - The ID of the exercise to remove.
    */
-  const handleDuplicateExercise = (
-    exercise: IScheduledExercise,
-    dayName: string,
-  ) => {
-    try {
-      const duplicatedExercise: IScheduledExercise = {
-        ...exercise,
-        id: `${exercise.id}-copy-${Date.now()}`,
+  const removeExerciseFromWorkout = useCallback(
+    (workoutId: string, exerciseId: string) => {
+      setWorkouts((prevWorkouts) => {
+        const workoutIndex = prevWorkouts.findIndex(
+          (workout) => workout.id === workoutId,
+        );
+
+        if (workoutIndex === -1) {
+          return prevWorkouts;
+        }
+
+        const updatedWorkouts = [...prevWorkouts];
+        const targetWorkout = updatedWorkouts[workoutIndex];
+        const exerciseToRemove = targetWorkout.exercises.find(
+          (ex) => ex.exerciseId === exerciseId,
+        );
+
+        updatedWorkouts[workoutIndex] = {
+          ...targetWorkout,
+          exercises: targetWorkout.exercises.filter(
+            (ex) => ex.exerciseId !== exerciseId,
+          ),
+        };
+
+        if (exerciseToRemove) {
+          toast('Exercise Removed', {
+            description: `"${exerciseToRemove.name}" removed from "${targetWorkout.name}".`,
+          });
+        }
+
+        return updatedWorkouts;
+      });
+    },
+    [],
+  );
+
+  /**
+   * Adds a new set to an exercise in a workout template.
+   * This typically means incrementing the planned number of sets.
+   * @param workoutId - The ID of the workout template.
+   * @param exerciseId - The ID of the exercise within the workout.
+   */
+  const addSetToExercise = useCallback(
+    (workoutId: string, exerciseId: string) => {
+      setWorkouts((prevWorkouts) =>
+        prevWorkouts.map((workout) => {
+          if (workout.id !== workoutId) {
+            return workout;
+          }
+
+          const updatedExercises = workout.exercises.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) {
+              return exercise;
+            }
+            toast.info(`Set added to ${exercise.name} in ${workout.name}`);
+            return {
+              ...exercise,
+              sets: (exercise.sets || 0) + 1,
+            };
+          });
+
+          return {
+            ...workout,
+            exercises: updatedExercises,
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  /**
+   * Removes a set from an exercise in a workout template.
+   * This typically means decrementing the planned number of sets.
+   * @param workoutId - The ID of the workout template.
+   * @param exerciseId - The ID of the exercise within the workout.
+   */
+  const removeSetFromExercise = useCallback(
+    (workoutId: string, exerciseId: string) => {
+      setWorkouts((prevWorkouts) =>
+        prevWorkouts.map((workout) => {
+          if (workout.id !== workoutId) {
+            return workout;
+          }
+
+          const updatedExercises = workout.exercises.map((exercise) => {
+            if (exercise.exerciseId !== exerciseId) {
+              return exercise;
+            }
+            toast.info(`Set removed from ${exercise.name} in ${workout.name}`);
+            return {
+              ...exercise,
+              sets: Math.max((exercise.sets || 0) - 1, 0),
+            };
+          });
+
+          return {
+            ...workout,
+            exercises: updatedExercises,
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  const saveWorkoutsToPlannedWorkouts = useCallback(() => {
+    if (user) {
+      const plannedWorkoutsData: IPlannedWorkouts = {
+        id: `planned-workout-${Date.now()}`,
+        name: 'Planned Workouts',
+        workouts: workouts,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       };
-
-      setWorkoutDays((prevDays) =>
-        prevDays.map((day) => {
-          if (day.dayName === dayName) {
-            return {
-              ...day,
-              exercises: [...day.exercises, duplicatedExercise],
-            };
-          }
-          return day;
-        }),
-      );
-
-      toast('Exercise duplicated', {
-        description: `Exercise duplicated on ${dayName}`,
-      });
-    } catch (error) {
-      console.error('Error duplicating exercise:', error);
-      toast.error('Failed to duplicate exercise');
+      setPlannedWorkouts(plannedWorkoutsData);
     }
-  };
-
-  /**
-   * Handles adding a selected exercise to the selected day
-   * @param exercise - The exercise to add to the day
-   * @param dayName - The day to add the exercise to
-   */
-  const handleAddExerciseToDay = (
-    exercise: IExerciseDefinition,
-    dayName: string,
-  ) => {
-    if (!user) return;
-
-    try {
-      const scheduledExercise: IScheduledExercise = {
-        ...exercise,
-        id: `${exercise.id}-${Date.now()}`,
-        sets: 3,
-        reps: 10,
-        weight: 0,
-        completed: false,
-      };
-
-      setWorkoutDays((prevDays) =>
-        prevDays.map((day) => {
-          if (day.dayName === dayName) {
-            return {
-              ...day,
-              exercises: [...day.exercises, scheduledExercise],
-            };
-          }
-          return day;
-        }),
-      );
-
-      toast('Exercise added', {
-        description: `${exercise.name} added to ${dayName}`,
-      });
-    } catch (error) {
-      console.error('Error adding exercise:', error);
-      toast.error('Failed to add exercise');
-    }
-  };
-
-  /**
-   * Checks if a specific day is today
-   * @param date - The date to check
-   * @returns True if the date is today
-   */
-  const isToday = (date: Date): boolean => {
-    return isSameDay(date, currentDate);
-  };
+  }, [user, workouts]);
 
   return {
-    workoutDays,
     isLoading,
-    currentWeekStart,
-    handleNavigateWeek,
-    handleDeleteExercise,
-    handleDuplicateExercise,
-    handleAddExerciseToDay,
-    isToday,
+    workouts,
+    plannedWorkouts,
+    numberOfWorkoutsPerWeek,
+
+    addExerciseToWorkout,
+    removeExerciseFromWorkout,
+    addSetToExercise,
+    removeSetFromExercise,
+    saveWorkoutsToPlannedWorkouts,
   };
 };

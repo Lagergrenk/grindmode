@@ -1,7 +1,7 @@
 import { forwardRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { IFoodSearchResult } from '@/types';
+import { IFoodSearchResult } from '@/features/nutrition/types';
 import { FoodSearchItem } from './FoodSearchItem';
 import { ScrollArea } from '@/components/ui/scroll-area';
 

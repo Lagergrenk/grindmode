@@ -6,14 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { IExerciseDefinition, IScheduledExercise } from '../../types';
+import { IExerciseSearchResultItem } from '../../types';
 
 interface IExerciseSelectionDialogProps {
-  dayName: string | null;
+  title: string | null;
   isOpen: boolean;
   onClose: () => void;
-  onSelectExercise: (exercise: IExerciseDefinition) => void;
-  onViewExercise: (exercise: IExerciseDefinition | IScheduledExercise) => void;
+  onSelectExercise: (exercise: IExerciseSearchResultItem) => void;
+  onViewExercise: (exercise: IExerciseSearchResultItem) => void;
   children?: React.ReactNode;
 }
 
@@ -21,7 +21,7 @@ interface IExerciseSelectionDialogProps {
  * Dialog component for selecting exercises to add to a workout day
  */
 export const SelectionDialog: React.FC<IExerciseSelectionDialogProps> = ({
-  dayName,
+  title,
   isOpen,
   onClose,
   children,
@@ -30,7 +30,7 @@ export const SelectionDialog: React.FC<IExerciseSelectionDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Exercise to {dayName}</DialogTitle>
+          <DialogTitle>Add Exercise to {title}</DialogTitle>
           <DialogDescription>
             Search and select an exercise to add to your workout.
           </DialogDescription>

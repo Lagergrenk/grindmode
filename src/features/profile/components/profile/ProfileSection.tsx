@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { IAuthUser } from '@/types';
+import { IAuthUser } from '@/features/auth/types';
 import { Button } from '@components/ui/button';
 import { Edit2Icon } from 'lucide-react';
 
