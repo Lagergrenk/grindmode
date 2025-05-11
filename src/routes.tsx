@@ -8,6 +8,7 @@ import { DashboardLayout } from '@/shared/layouts/DashboardLayout';
 import { Nutrition } from './features/nutrition/pages/Nutrition';
 import { WorkoutPlanner } from './features/workoutplanner';
 import { Profile } from './features/profile';
+import { LandingPage } from './features/landing/pages/LandingPage';
 
 /**
  * Main router component that handles application routing
@@ -29,6 +30,8 @@ export const Routes: React.FC = () => {
   return (
     <Switch>
       {/* Auth Routes */}
+
+      <Route path="/" element={<LandingPage />} />
       {authRoutes(isAuthenticated)}
 
       {/*  Protected Routes with Dashboard Layout*/}

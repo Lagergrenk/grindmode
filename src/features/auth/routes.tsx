@@ -7,16 +7,6 @@ export const authRoutes = (isAuthenticated: boolean) => {
   return (
     <Route key="auth-layout" element={<AuthLayout />}>
       <Route
-        path="/"
-        element={
-          isAuthenticated ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
-      <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
       />
