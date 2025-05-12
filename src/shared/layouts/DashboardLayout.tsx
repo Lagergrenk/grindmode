@@ -36,7 +36,7 @@ export const DashboardLayout: React.FC = () => {
       </div>
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Navbar isDashboard={true} onLogout={handleLogout} />
+        <Navbar onLogout={handleLogout} />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-background">
           <div className="container mx-auto">

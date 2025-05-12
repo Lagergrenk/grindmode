@@ -44,18 +44,12 @@ export function LandingPage() {
           </div>
         </section>
 
-        <Link to="/signup">
+        <Link to="/login">
           <Button size="lg" className="text-lg px-8 py-4">
             Get Started
           </Button>
         </Link>
       </main>
-
-      <footer className="mt-16 text-center text-sm text-muted-foreground">
-        <p>
-          &copy; {new Date().getFullYear()} Grind Mode. All rights reserved.
-        </p>
-      </footer>
     </div>
   );
 }

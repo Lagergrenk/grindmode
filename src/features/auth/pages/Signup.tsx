@@ -1,14 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from 'firebase/auth';
 import { SignupForm } from '@/features/auth/components/SignupForm';
 import { ISignupFormData } from '../types';
-import { auth } from '@/config/firebase';
 import {
   Card,
   CardHeader,
@@ -20,6 +13,7 @@ import {
   CardFooter,
 } from '@/components/ui';
 import { TriangleAlert } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 /**
  * Signup page component that handles user registration
@@ -29,6 +23,7 @@ export const Signup = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const { signup, loginWithGoogle } = useAuth();
   /**
    * Handles the signup process using email/password
    * @param formData - User registration data from the form
@@ -41,19 +36,7 @@ export const Signup = () => {
 
     try {
       // Create the user with email and password
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
-
-      // Update the user's display name
-      if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: displayName,
-        });
-      }
-
+      signup(email, password, displayName);
       // Redirect to the dashboard or home page after successful signup
       navigate('/dashboard');
     } catch (err) {
@@ -86,8 +69,7 @@ export const Signup = () => {
     setError(null);
 
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      loginWithGoogle();
 
       // Redirect after successful Google sign-in
       navigate('/dashboard');

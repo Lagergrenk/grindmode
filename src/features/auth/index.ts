@@ -14,9 +14,6 @@ export * from './guards/ProtectedRoute';
 // Export hooks
 export * from './hooks/useAuth';
 
-// Export routes
-export * from './routes';
-
 // Export utility functions
 export * from './utils/firebaseAuthErrorHandler';
 

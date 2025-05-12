@@ -13,7 +13,7 @@ import {
   firebaseGetAdditionalUserInfo,
 } from '../firebase';
 import { getAuthErrorMessage } from '../utils/firebaseAuthErrorHandler';
-import { createUserProfile } from '@/features/profile';
+import { createUserProfile, getUserProfile } from '@/features/profile';
 
 /**
  * Provider component that makes authentication available throughout the app
@@ -28,20 +28,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const unsubscribe = firebaseOnAuthStateChanged(firebaseAuth, (authUser) => {
-      if (authUser) {
-        setUser({
-          uid: authUser.uid,
-          email: authUser.email,
-          displayName: authUser.displayName,
-          photoURL: authUser.photoURL,
-        } as IAuthUser);
-        setStatus('authenticated');
-      } else {
-        setUser(null);
-        setStatus('unauthenticated');
-      }
-    });
+    const unsubscribe = firebaseOnAuthStateChanged(
+      firebaseAuth,
+      async (authUser) => {
+        if (authUser) {
+          let currentDisplaName = authUser.displayName;
+          const currentPhotoURL = authUser.photoURL;
+          if (!currentDisplaName || !currentPhotoURL) {
+            const userProfile = await getUserProfile();
+            console.log('userProfile', userProfile);
+            if (userProfile) {
+              currentDisplaName = userProfile.displayName;
+            }
+          }
+          setUser({
+            uid: authUser.uid,
+            email: authUser.email,
+            displayName: currentDisplaName || '',
+            photoURL: currentPhotoURL || '',
+          });
+          setStatus('authenticated');
+        } else {
+          setUser(null);
+          setStatus('unauthenticated');
+        }
+      },
+    );
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
@@ -78,6 +90,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         email: userCredentials.user.email || '',
         displayName: userCredentials.user.displayName || '',
       });
+      setUser({
+        uid: userCredentials.user.uid,
+        email: userCredentials.user.email,
+        displayName: userCredentials.user.displayName || '',
+        photoURL: userCredentials.user.photoURL || '',
+      });
     } catch (err) {
       const errorMsg = getAuthErrorMessage(err);
       const error = new Error(errorMsg);
@@ -101,7 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const userCredential = await firebaseSignUp(email, password);
       if (userCredential.user) {
-        await firebaseUpdateProfile({ displayName });
+        await createUserProfile({
+          email: userCredential.user.email || '',
+          displayName,
+        });
+        setUser({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email,
+          displayName,
+          photoURL: userCredential.user.photoURL || '',
+        });
       }
     } catch (err) {
       const errorMsg = getAuthErrorMessage(err);

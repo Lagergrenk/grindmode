@@ -1,7 +1,12 @@
 import React from 'react';
-import { Route, Routes as Switch, useLocation, Link } from 'react-router-dom';
+import {
+  Route,
+  Routes as Switch,
+  useLocation,
+  Link,
+  Navigate,
+} from 'react-router-dom';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { authRoutes } from './features/auth/routes';
 import { ProtectedRoute } from './components/navigation';
 import { Dashboard } from './features/dashboard/pages/Dashboard';
 import { DashboardLayout } from '@/shared/layouts/DashboardLayout';
@@ -9,6 +14,9 @@ import { Nutrition } from './features/nutrition/pages/Nutrition';
 import { WorkoutPlanner } from './features/workoutplanner';
 import { Profile } from './features/profile';
 import { LandingPage } from './features/landing/pages/LandingPage';
+import { AuthLayout } from './features/auth';
+import { Login } from './features/auth/pages/Login';
+import { Signup } from './features/auth/pages/Signup';
 
 /**
  * Main router component that handles application routing
@@ -30,9 +38,22 @@ export const Routes: React.FC = () => {
   return (
     <Switch>
       {/* Auth Routes */}
-
-      <Route path="/" element={<LandingPage />} />
-      {authRoutes(isAuthenticated)}
+      <Route
+        path="/"
+        element={
+          isAuthenticated ? <Navigate to="/dashboard" /> : <LandingPage />
+        }
+      />
+      <Route key="auth-layout" element={<AuthLayout />}>
+        <Route
+          path="/login"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
+        />
+        <Route
+          path="/signup"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />}
+        />
+      </Route>
 
       {/*  Protected Routes with Dashboard Layout*/}
       <Route element={<ProtectedRoute isAuthenticated={isAuthenticated} />}>
