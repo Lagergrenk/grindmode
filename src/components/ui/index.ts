@@ -16,3 +16,4 @@ export * from './stats';
 export * from './SummaryCard';
 export * from './tooltip';
 export * from './editable-text';
+export * from './checkbox';

@@ -43,6 +43,7 @@ export interface IPlannedExercise extends IExerciseBase {
 export interface IWorkout {
   id: string;
   name: string;
+  completed?: boolean;
   exercises: IPlannedExercise[];
   createdAt?: Timestamp;
   updatedAt?: Timestamp;

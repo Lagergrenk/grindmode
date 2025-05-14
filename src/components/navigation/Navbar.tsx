@@ -35,9 +35,11 @@ export const Navbar: React.FC<INavbarProps> = ({ onLogout }) => {
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <div className="flex items-center gap-2 rounded-full pl-1 cursor-pointer">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user?.photoURL || ''} alt="User Avatar" />
-                  </Avatar>
+                  {user?.photoURL && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user?.photoURL} alt="User Avatar" />
+                    </Avatar>
+                  )}
                   <span className="hidden md:inline text-sm font-medium">
                     {user?.displayName}
                   </span>

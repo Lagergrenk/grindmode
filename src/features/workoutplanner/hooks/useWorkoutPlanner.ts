@@ -24,7 +24,7 @@ const createNewPlannedWorkouts = (
 ): IPlannedWorkouts => {
   const now = Timestamp.now();
   return {
-    id: `temp-plan-${now.toMillis()}`, // Temporary ID, finalized on save
+    id: `temp-plan-${now.toMillis()}`,
     name,
     workouts: initialWorkouts,
     createdAt: now,
@@ -39,9 +39,8 @@ const createNewPlannedWorkouts = (
 export const useWorkoutPlanner = () => {
   const { user } = useAuth();
   const { state: appState } = useAppState();
-  const [numberOfWorkoutsPerWeek] = useState<number>(
-    appState.userPreferences.workoutDaysPerWeek,
-  );
+  const numberOfWorkoutsPerWeek = appState.userPreferences.workoutDaysPerWeek;
+
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [plannedWorkouts, setPlannedWorkouts] = useState<
@@ -57,6 +56,7 @@ export const useWorkoutPlanner = () => {
           id: `workout-template-${Date.now()}-${i}`,
           name: `Workout ${i + 1}`,
           exercises: [],
+          completed: false,
         }),
       );
       setPlannedWorkouts(

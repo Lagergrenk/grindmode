@@ -41,7 +41,7 @@ export const defaultAppState: IAppState = {
     workoutDaysPerWeek: 3,
   },
   ui: {
-    sidebarOpen: false,
+    sidebarOpen: true,
     activeDashboardTab: 'home',
   },
   dashboardData: {

@@ -99,6 +99,7 @@ export const EditableText: React.FC<IEditableTextProps> = ({
           'bg-transparent border-input focus:border-primary outline-none',
           'text-inherit font-inherit m-0',
           'min-w-[50px]',
+          'underline underline-offset-2 decoration-dashed decoration-muted-foreground',
           type === 'number' &&
             'appearance-none [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0',
           inputClassName,
@@ -116,7 +117,7 @@ export const EditableText: React.FC<IEditableTextProps> = ({
       onClick={handleTextClick}
       onKeyDown={handleTextKeyDown}
       className={cn(
-        'cursor-text hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors',
+        'cursor-text hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors underline underline-offset-2  decoration-muted-foreground',
         {
           // eslint-disable-next-line @typescript-eslint/naming-convention
           'text-muted-foreground italic':

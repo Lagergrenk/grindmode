@@ -14,9 +14,10 @@ import {
   IExerciseSearchResultItem,
   IPlannedExercise,
 } from '@/features/workoutplanner';
-
 import { EditableText } from '@/components/ui/editable-text';
 import { toast } from 'sonner';
+import { useAppState } from '@/hooks/useAppState';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export const WorkoutPlanner: React.FC = () => {
   const {
@@ -31,6 +32,8 @@ export const WorkoutPlanner: React.FC = () => {
     setWorkoutName,
     saveWorkoutPlan,
   } = useWorkoutPlanner();
+
+  const { state, setWorkoutDaysPerWeek } = useAppState();
 
   const {
     searchTerm,
@@ -76,6 +79,7 @@ export const WorkoutPlanner: React.FC = () => {
         addExerciseToWorkout(currentWorkoutIdForOps, selectedExercise);
       }
     }
+    handleCloseModals();
   };
 
   const handleCloseModals = () => {
@@ -129,21 +133,38 @@ export const WorkoutPlanner: React.FC = () => {
           initialValue={plannedWorkouts?.name || ''}
           onSave={(newValue) => setWorkoutTitle(newValue)}
         />
-        <p className="text-sm text-gray-500">
-          You prefer to work out {workouts.length} times a week.
-        </p>
+        <div className="flex justify-end items-center space-x-4">
+          <p className="text-sm text-gray-500">
+            You prefer to work out
+            <EditableText
+              as="span"
+              className="font-medium mx-1 fit-content w-8"
+              initialValue={state.userPreferences.workoutDaysPerWeek.toString()}
+              onSave={(newValue) => setWorkoutDaysPerWeek(parseInt(newValue))}
+              type="number"
+            />
+            times a week.
+          </p>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {workouts.map((workout: IWorkout) => (
           <Card key={workout.id} id={`workout-${workout.id}`}>
             <CardHeader>
               <div className="flex justify-between items-start">
-                <div>
+                <div className="flex flex-row justify-between items-center w-full">
                   <EditableText
                     className="text-sm font-semibold"
                     initialValue={workout.name}
                     onSave={(newValue) => setWorkoutName(workout.id, newValue)}
                   />
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-gray-500">completed?</p>
+                    <Checkbox
+                      className="h-4 w-4"
+                      id={`workout-completed-${workout.id}`}
+                    />
+                  </div>
                 </div>
               </div>
             </CardHeader>

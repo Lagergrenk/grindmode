@@ -153,7 +153,6 @@ export const AddNewMeal: React.FC<IAddNewMealProps> = ({
 
       <CardContent>
         {step === 'meal' ? (
-          // Step 1: Meal Details Form
           <MealForm
             onSubmit={handleMealSubmit}
             onCancel={onCancel}
@@ -161,7 +160,6 @@ export const AddNewMeal: React.FC<IAddNewMealProps> = ({
             isEditing={isEditing}
           />
         ) : (
-          // Step 2: Food Items
           <div className="space-y-4">
             {/* Meal summary */}
             <div className="bg-muted p-3 rounded-md flex justify-between items-center">
@@ -183,7 +181,6 @@ export const AddNewMeal: React.FC<IAddNewMealProps> = ({
             </div>
 
             {isEditingFood ? (
-              // Food Item Form
               <div className="border rounded-lg p-4">
                 <FoodItemForm
                   onSubmit={handleFoodSubmit}
@@ -192,7 +189,6 @@ export const AddNewMeal: React.FC<IAddNewMealProps> = ({
                 />
               </div>
             ) : (
-              // Food Items List and Add Button
               <div className="space-y-3">
                 {foodItems.length > 0 && (
                   <div className="space-y-2">

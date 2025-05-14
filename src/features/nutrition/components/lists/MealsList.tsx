@@ -28,7 +28,6 @@ export const MealsList: React.FC<IMealsListProps> = ({
       <CardHeader className="pb-3 flex flex-row items-center justify-between">
         <CardTitle className="text-lg flex items-center gap-2">
           <Utensils className="h-5 w-5" />
-          Today's Meals
           {isLoading && (
             <Loader2 className="h-4 w-4 ml-2 animate-spin text-muted-foreground" />
           )}
@@ -91,7 +90,7 @@ export const MealsList: React.FC<IMealsListProps> = ({
           </div>
         ) : (
           <div className="py-8 text-center border-dashed border rounded-md bg-muted/40">
-            <p className="text-muted-foreground">No meals logged for today.</p>
+            <p className="text-muted-foreground">No meals logged.</p>
           </div>
         )}
 
