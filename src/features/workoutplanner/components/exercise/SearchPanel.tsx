@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { IExerciseSearchResultItem } from '../../types';
-import { cn } from '@/lib/utils';
+import { cn } from '@/shared/utils/classMerger';
 import { SearchResults } from './SearchResults';
 
 /**

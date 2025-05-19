@@ -26,6 +26,11 @@ export const getSidebarNavItems = (): INavItem[] => {
       icon: <DumbbellIcon className="h-4 w-4" />,
     },
     {
+      path: '/workout',
+      label: 'Planned Workouts',
+      icon: <DumbbellIcon className="h-4 w-4" />,
+    },
+    {
       path: '/nutrition',
       label: 'Nutrition',
       icon: <UtensilsCrossed className="h-4 w-4" />,

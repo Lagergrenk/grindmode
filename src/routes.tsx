@@ -9,6 +9,7 @@ import { Login } from './features/auth/pages/Login';
 import { Signup } from './features/auth/pages/Signup';
 import { LoadingPage } from './features/misc/loading/Loading';
 import { NotFoundPage } from './features/misc/notFound/NotFound';
+import { ViewPlannedWorkouts } from './features/workoutplanner/pages/ViewPlannedWorkouts';
 
 // Lazily load components
 const Dashboard = lazy(() =>
@@ -71,6 +72,7 @@ export const Routes: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/nutrition" element={<Nutrition />} />
             <Route path="/workoutplanner" element={<WorkoutPlanner />} />
+            <Route path="/workout" element={<ViewPlannedWorkouts />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/progress" element={<div>Progress Tracking</div>} />
           </Route>

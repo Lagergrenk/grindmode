@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn } from '@/shared/utils/classMerger';
 
 interface INavItem {
   path: string;
@@ -36,7 +36,6 @@ export const SidebarNavItems: React.FC<ISidebarNavItemsProps> = ({
               )
             }
           >
-            {/* Wrap the icon in a container that maintains position during transition */}
             <div
               className={cn(
                 'flex items-center transition-all duration-300 ease-in-out',
@@ -47,8 +46,6 @@ export const SidebarNavItems: React.FC<ISidebarNavItemsProps> = ({
                 {item.icon}
               </span>
             </div>
-
-            {/* Text label with smooth fade and width transition */}
             <span
               className={cn(
                 'whitespace-nowrap transition-all duration-300 ease-in-out',

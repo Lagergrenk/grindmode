@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/shared/utils/classMerger';
 import { Button } from '@/components/ui/button';
 import { SidebarNavItems } from './SideBarNavItems';
 import { getSidebarNavItems } from './getSidebarNavItems';

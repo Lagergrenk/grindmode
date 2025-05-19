@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Clock, Edit2, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/shared/utils/classMerger';
 
 interface IMealCardProps {
   meal: IMeal;

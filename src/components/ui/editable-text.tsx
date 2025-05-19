@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { cn } from '@/lib/utils'; // Assuming this path is correct for your project's cn utility
+import { cn } from '@/shared/utils/classMerger'; // Assuming this path is correct for your project's cn utility
 
 export interface IEditableTextProps {
   initialValue: string | number;

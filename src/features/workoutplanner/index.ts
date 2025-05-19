@@ -16,7 +16,7 @@ export * from './pages/WorkoutPlanner';
 export * from './types';
 
 // Export other utilities as needed
-export * from './api';
+export * from '../../lib/exerciseDBApi';
 
 // Export Firebase service
 export * from './firebase';

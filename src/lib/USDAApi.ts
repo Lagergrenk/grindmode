@@ -1,5 +1,5 @@
 import { IFoodSearchResult, INutrientInfo } from '@/features/nutrition';
-import { IImportMeta } from '../../../vite-env';
+import { IImportMeta } from '../../vite-env';
 
 const VITE_USDA_API_KEY: IImportMeta = import.meta.env.VITE_USDA_API_KEY;
 const USDA_API_BASE_URL: IImportMeta = import.meta.env.VITE_USDA_API_BASE_URL;

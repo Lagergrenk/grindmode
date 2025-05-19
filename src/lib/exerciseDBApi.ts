@@ -1,5 +1,5 @@
-import { IExerciseSearchResultItem } from './types';
-import { IImportMeta } from '../../../vite-env';
+import { IExerciseSearchResultItem } from '../features/workoutplanner/types';
+import { IImportMeta } from '../../vite-env';
 
 const EXERCISE_BASE_URL: IImportMeta = import.meta.env.VITE_EXERCISE_BASE_URL;
 

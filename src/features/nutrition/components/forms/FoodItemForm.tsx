@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { AlertCircle } from 'lucide-react';
 import { validateFoodForm } from '@/shared/utils/validateFood';
-import { usdaApi } from '@/features/nutrition/api';
+import { usdaApi } from '@/lib/USDAApi';
 
 interface IFoodItemFormProps {
   onSubmit: (foodItem: IFoodItem) => void;
