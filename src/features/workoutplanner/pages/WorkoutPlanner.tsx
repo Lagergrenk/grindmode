@@ -17,7 +17,6 @@ import {
 import { EditableText } from '@/components/ui/editable-text';
 import { toast } from 'sonner';
 import { useAppState } from '@/hooks/useAppState';
-import { Checkbox } from '@/components/ui/checkbox';
 
 export const WorkoutPlanner: React.FC = () => {
   const {
@@ -158,13 +157,6 @@ export const WorkoutPlanner: React.FC = () => {
                     initialValue={workout.name}
                     onSave={(newValue) => setWorkoutName(workout.id, newValue)}
                   />
-                  <div className="flex items-center space-x-2">
-                    <p className="text-sm text-gray-500">completed?</p>
-                    <Checkbox
-                      className="h-4 w-4"
-                      id={`workout-completed-${workout.id}`}
-                    />
-                  </div>
                 </div>
               </div>
             </CardHeader>
