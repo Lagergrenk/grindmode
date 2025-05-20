@@ -36,7 +36,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           const currentPhotoURL = authUser.photoURL;
           if (!currentDisplaName || !currentPhotoURL) {
             const userProfile = await getUserProfile();
-            console.log('userProfile', userProfile);
             if (userProfile) {
               currentDisplaName = userProfile.displayName;
             }

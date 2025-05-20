@@ -17,3 +17,5 @@ export * from './SummaryCard';
 export * from './tooltip';
 export * from './editable-text';
 export * from './checkbox';
+export * from './progress';
+export * from './command';

@@ -30,6 +30,21 @@ const WorkoutPlanner = lazy(() =>
 const Profile = lazy(() =>
   import('./features/profile').then((module) => ({ default: module.Profile })),
 );
+const ActiveWorkoutPage = lazy(() =>
+  import('./features/workouttracker/pages/ActiveWorkout').then((module) => ({
+    default: module.ActiveWorkoutPage,
+  })),
+);
+const WorkoutSummaryPage = lazy(() =>
+  import('./features/workouttracker/pages/WorkoutSummary').then((module) => ({
+    default: module.WorkoutSummaryPage,
+  })),
+);
+const WorkoutHistoryPage = lazy(() =>
+  import('./features/workouttracker/pages/WorkoutHistory').then((module) => ({
+    default: module.WorkoutHistoryPage,
+  })),
+);
 
 /**
  * Main router component that handles application routing
@@ -74,7 +89,16 @@ export const Routes: React.FC = () => {
             <Route path="/workoutplanner" element={<WorkoutPlanner />} />
             <Route path="/workout" element={<ViewPlannedWorkouts />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/progress" element={<div>Progress Tracking</div>} />
+
+            <Route path="/workouts" element={<WorkoutHistoryPage />} />
+            <Route
+              path="/workout/active/:workoutId"
+              element={<ActiveWorkoutPage />}
+            />
+            <Route
+              path="/workout/summary/:workoutId"
+              element={<WorkoutSummaryPage />}
+            />
           </Route>
         </Route>
 

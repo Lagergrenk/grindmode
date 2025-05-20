@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPlannedWorkouts } from '../firebase';
-import { IPlannedWorkouts } from '../types';
+import { IPlannedWorkouts, IWorkout } from '../types';
 import {
   Card,
   CardContent,
@@ -9,11 +9,27 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, CheckIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { StartWorkoutButton } from '@/features/workouttracker';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 /**
  * Component for displaying a list of planned workouts
@@ -24,6 +40,13 @@ export const ViewPlannedWorkouts = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // State for workout selection dialog
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [selectedPlan, setSelectedPlan] = useState<IPlannedWorkouts | null>(
+    null,
+  );
+  const [selectedWorkout, setSelectedWorkout] = useState<IWorkout | null>(null);
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -42,12 +65,30 @@ export const ViewPlannedWorkouts = () => {
     fetchWorkouts();
   }, []);
 
-  const handleStartWorkout = (workoutId: string) => {
-    navigate(`/workout/start/${workoutId}`);
+  /**
+   * Opens the workout selection dialog for a specific workout plan
+   * @param workout - The selected workout plan
+   */
+  const handleStartWorkout = (workout: IPlannedWorkouts) => {
+    setSelectedPlan(workout);
+    setIsDialogOpen(true);
   };
 
-  const handleEditWorkout = (workoutId: string) => {
-    navigate(`/workout/edit/${workoutId}`);
+  /**
+   * Handles the selection of a specific workout from the dialog
+   * @param workout - The selected workout to start
+   */
+  const handleSelectWorkout = (workout: IWorkout) => {
+    setSelectedWorkout(workout);
+  };
+
+  /**
+   * Closes the dialog and resets selection state
+   */
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedWorkout(null);
+    // We keep the selectedPlan to avoid UI flicker if dialog is reopened
   };
 
   return (
@@ -130,17 +171,10 @@ export const ViewPlannedWorkouts = () => {
                 )}
                 <div className="flex gap-2 mt-4">
                   <Button
-                    onClick={() => handleStartWorkout(workout.id)}
+                    onClick={() => handleStartWorkout(workout)}
                     className="flex-1"
                   >
-                    Start
-                  </Button>
-                  <Button
-                    onClick={() => handleEditWorkout(workout.id)}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    Edit
+                    Start workout
                   </Button>
                 </div>
               </CardContent>
@@ -148,6 +182,62 @@ export const ViewPlannedWorkouts = () => {
           ))}
         </div>
       )}
+
+      {/* Workout Selection Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Select a Workout</DialogTitle>
+            <DialogDescription>
+              Choose which workout you would like to start from{' '}
+              {selectedPlan?.name || 'this plan'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Command>
+              <CommandInput placeholder="Search workouts..." />
+              <CommandList>
+                <CommandEmpty>No workouts found.</CommandEmpty>
+                <CommandGroup>
+                  {selectedPlan?.workouts.map((workout) => (
+                    <CommandItem
+                      key={workout.id}
+                      value={workout.name}
+                      onSelect={() => handleSelectWorkout(workout)}
+                      className="flex items-center justify-between cursor-pointer"
+                    >
+                      <div>
+                        <p>{workout.name}</p>
+                        {workout.exercises && (
+                          <p className="text-sm text-muted-foreground">
+                            {workout.exercises.length} exercise
+                            {workout.exercises.length !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
+                      {selectedWorkout?.id === workout.id && (
+                        <CheckIcon className="h-4 w-4" />
+                      )}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={handleCloseDialog}>
+              Cancel
+            </Button>
+            <StartWorkoutButton
+              workoutId={selectedWorkout?.id || ''}
+              plannedWorkoutsId={selectedPlan?.id || ''}
+              disabled={!selectedWorkout}
+            >
+              Start Workout
+            </StartWorkoutButton>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
