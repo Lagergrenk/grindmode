@@ -132,7 +132,7 @@ export const ViewPlannedWorkouts = () => {
           <p className="text-gray-600 mb-6">
             You haven't created any workout plans yet.
           </p>
-          <Button onClick={() => navigate('/workout/create')}>
+          <Button onClick={() => navigate('/workoutplanner')}>
             Create Your First Workout Plan
           </Button>
         </div>

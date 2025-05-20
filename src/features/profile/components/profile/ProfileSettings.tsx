@@ -73,7 +73,7 @@ export const ProfileSettings: React.FC<IProfileSettingsProps> = ({
             action={
               <ProfileAlertDialog
                 trigger={
-                  <Button variant="outline" size="sm" disabled={isLoading}>
+                  <Button variant="outline" size="sm" disabled={true}>
                     Change
                   </Button>
                 }
@@ -109,7 +109,7 @@ export const ProfileSettings: React.FC<IProfileSettingsProps> = ({
             action={
               <ProfileAlertDialog
                 trigger={
-                  <Button variant="outline" size="sm" disabled={isLoading}>
+                  <Button variant="outline" size="sm" disabled={true}>
                     Change
                   </Button>
                 }
